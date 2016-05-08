@@ -145,6 +145,7 @@ SCSI
 编译
 	#make bzImage
 编译完成cp过去覆盖
+	
 	#cp arch/x86/boot/bzImage /mnt/boot/
 	cp: overwrite `/mnt/boot/bzImage'? y
 
