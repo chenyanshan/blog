@@ -23,6 +23,7 @@
 
 
 先用命令查看硬件信息：
+	
 	[root@localhost ~]# lspci
 	00:00.0 Host bridge: Intel Corporation 82P965/G965 Memory Controller Hub (rev 02)
 	00:01.0 PCI bridge: Intel Corporation 82G35 Express PCI Express Root Port (rev 02)
@@ -45,12 +46,14 @@
 在上面就可以看出各种硬件信息
 
 用一个新磁盘创建2分区，因为是实验，所有我现在创建的叫做够用就好
+	
 	#fdisk /dev/sdb
 	  Device Boot      Start         End      Blocks   Id  System
 	/dev/sdb1            2048      104447       51200   83  Linux
 	/dev/sdb2          104448     1153023      524288   83  Linux
 
 查看分区是否被识别
+	
 	[root@localhost ~]# cat /proc/partitions 
 	major minor  #blocks  name
 	
@@ -65,41 +68,53 @@
 	   8       18     524288 sdb2
 
 格式化:
+	
 	[root@localhost ~]# mkfs.ext4 /dev/sdb1
 	[root@localhost ~]# mkfs.ext4 /dev/sdb2
 
 创建2挂载点
+	
 	#mkdir /mnt/{boot,sysroot}
 	#mount /dev/sdb1 /mnt/boot
 	#mount /dev/sdb2 /mnt/sysroot
 
 安装gurb到/mnt
+	
 	#grub-install --root-directory=/mnt /dev/sdb
 清楚所有原配置
+	
 	#make allnoconfig
 现在开始配置
+	
 	#make menuconfig
 参数1:kernel版本
+	
 	General setup
 	    (ItCys.top-v1.1) Local version - append to kernel release
 参数2:CPU型号和多处理器支持
+	
 	Processor type and features 
 	    Processor family (Core 2/newer Xeon)  --->
 	    [*] Symmetric multi-processing support 
 	    [ ] SMT (Hyperthreading) scheduler support (NEW) //CPU支持超线程
 参数3:支持装载模块
+	
 	[*] Enable loadable module support  ---> 
 参数4:支持ext4文件系统
+	
 	File systems
 	    <*> The Extended 4 (ext4) filesystem
 参数5:支持PCI总线
+	
 	Bus options (PCI etc.)
 	    [*] PCI support 
 参数5:支持虚拟硬盘(真实硬盘选择其它的)
+	
 	Device Drivers 
 	    [*] Fusion MPT device support  --->
 参数6:支持SATA或者SCSI
 SATA
+	
 	Fusion MPT device support
 	    <*> Serial ATA and Parallel ATA drivers  --->
 	        <*>   AHCI SATA support 
@@ -107,6 +122,7 @@ SATA
 	        <*>   Fusion MPT ScsiHost drivers for SPI
 	        <*>   Fusion MPT misc device (ioctl) driver 
 SCSI
+	
 	SCSI device support  --->
 	    {*} SCSI device support
 	    < > SCSI disk support (NEW)
@@ -114,18 +130,23 @@ SCSI
 	    <*>   Fusion MPT ScsiHost drivers for SPI
 	    <*>   Fusion MPT misc device (ioctl) driver
 开始编译
+	
 	#make bzImage   //只编译bz2压缩格式的内核文件,只编译核心，不编译模块
 编译过程中其它准备事项：
+	
 	#cd /mnt/sysroot
 	#mkdir -pv etc/rc.d/init.d bin sbin root home proc sys lib lib64 var/log usr/{local,share} boot dev
 编译完成：
+	
 	Setup is 13644 bytes (padded to 13824 bytes).
 	System is 1392 kB
 	CRC 25abd21e
 	Kernel: arch/x86/boot/bzImage is ready  (#1)
 将kernel拷贝到/mnt/boot下面：
+	
 	#cp arch/x86/boot/bzImage /mnt/boot/
 制作启动文件：
+	
 	#vim /mnt/boot/grub/grub.conf
 	default=0
 	timeout=3
@@ -133,16 +154,20 @@ SCSI
 	        root (hd0,0)
 	        kernel /bzImage ro root=/dev/sda2
 将硬盘给其它虚拟机使用
+	
 ![][image-1]
 ![][image-2]
 ![][image-3]
+	
 启动失败：挂载问题
 因为etx4是elf可执行程序
+	
 	#make menuconfig
 	Executable file formats / Emulations
 	    [*] Kernel support for ELF binaries   //自动点亮的不要去取消
 	    <*> Kernel support for scripts starting with #! 
 编译
+	
 	#make bzImage
 编译完成cp过去覆盖
 	
@@ -150,6 +175,7 @@ SCSI
 	cp: overwrite `/mnt/boot/bzImage'? y
 
 新建一个copy命令的脚本
+	
 	#!/bin/bash
 	#
 	target=/mnt/sysroot/
@@ -192,15 +218,19 @@ SCSI
 	  read -p "Plz enter a command: " command
 	done
 copy bash 命令
+	
 	# bash ~/commandcopy.sh 
 	Plz enter a command: bash
 	Plz enter a command: quit
 测试
+	
 	[root@localhost linux]# chroot /mnt/sysroot/
 	bash-4.1# 
 链接
+	
 	# ln -sv /mnt/sysroot/bin/{bash,sh}
 更改grub,在最后加上init的路径
+	
 	#vim /mnt/boot/grub/grub.conf
 	default=0
 	timeout=3
@@ -208,8 +238,11 @@ copy bash 命令
 	        root (hd0,0)
 	        kernel /bzImage ro root=/dev/sda2 init=/bin/bash
 再继续启动测试机
+	
 ![][image-4]
+	
 ...
+	
 后面试了N回，还是启动不了，算是记一次失败的
 保存快照，下次在战
 
