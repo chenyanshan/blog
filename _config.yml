@@ -5,7 +5,7 @@ highlighter:      rouge
 # Setup
 title:            Hi AI!
 tagline:          '费曼学习法实践'
-description:      '深入云原生架构，提升大变局下竞争力，拥抱 AI、拥抱未来。'
+description:      '深入云原生架构，提升大变局下竞争力，拥抱 AI ，拥抱未来。'
 url:              https://chenyanshan.github.io
 baseurl:          '/blog'
                   # the optional subpath of your site, e.g. "/blog"
