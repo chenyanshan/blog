@@ -1,5 +1,5 @@
 ---
-layout: category
+layout: category1
 title: Markup
 ---
 
