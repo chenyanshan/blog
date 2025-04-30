@@ -5,9 +5,8 @@ sidebar_link: true
 ---
 
 <p class="message">
-  Hey there! This page is included as an example. Feel free to customize it
-  for your own use upon downloading. Carry on!
+  碳基生命是硅基生命的 bootloader 。
+  所以，拥抱 AI ，就是拥抱未来。
 </p>
 
-To make pages show up in the sidebar, add `sidebar_link: true` to the front
-matter.
+深入研究云原生架构和 LLM 相关知识，希望能在未来的大变局多一些抵抗浪潮的能力。
