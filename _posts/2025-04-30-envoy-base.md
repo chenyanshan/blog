@@ -43,13 +43,13 @@ Envoy 特性：
 
 
 
-Envoy 的配置由 监听器（Listeners），过滤器链（Filter Chains），路由（Route），集群（Clusters），端点（Endpoint） 组成。
+Envoy 的配置由 监听器（Listeners）、过滤器链（Filter Chains）、路由（Route）、集群（Clusters）、端点（Endpoint） 组成。
 
-Listeners：一个 Envoy 实例可以有多组监听器，而每个监听器可以监听不同的 IP 地址和端口，处理不同类型的流量。单个侦听器自成一个整体。
-Filter Chains： 过滤链，过滤器链是连接与监听器下的组件，即每个监听器都会因为业务不同有自己的过滤器链处理自己的业务。而为什么叫做链呢？是因为一个监听器可以配置一个或者多个过滤器，从而形成过滤器链。有比如 tcp_proxy，rate_limit，其中最重要的是 http_connection_manager（HCM），HTTP 连接管理链。
-Route: 路由，HTTP过滤器，是 HCM 过滤器的核心功能，根据路径，域名，将流量转发到后端的 Cluster 。
-Clusters： 集群，可以指定负载均衡策略，连接超时设置，将流量转发给一组 Endpoint 。
-Endpoint： 端点，真正的业务节点地址。
+- Listeners：一个 Envoy 实例可以有多组监听器，而每个监听器可以监听不同的 IP 地址和端口，处理不同类型的流量。单个侦听器自成一个整体。
+- Filter Chains： 过滤链，过滤器链是连接与监听器下的组件，即每个监听器都会因为业务不同有自己的过滤器链处理自己的业务。而为什么叫做链呢？是因为一个监听器可以配置一个或者多个过滤器，从而形成过滤器链。有比如 tcp_proxy，rate_limit，其中最重要的是 http_connection_manager（HCM），HTTP 连接管理链。
+- Route: 路由，HTTP 过滤器，是 HCM 过滤器的核心功能，根据路径，域名，将流量转发到后端的 Cluster 。
+- Clusters： 集群，可以指定负载均衡策略，连接超时设置，将流量转发给一组 Endpoint 。
+- Endpoint： 端点，真正的业务节点地址。
 
 它们是如何协同工作的？
 1. 一个请求进来，经过监听器。
@@ -57,7 +57,7 @@ Endpoint： 端点，真正的业务节点地址。
 3. http_connection_manager 根据请求的特征和它内部的 route_config 中的路由规则进行匹配。
 4. 路由规则匹配成功后，会指定一个目标集群。
 5. Envoy 接下来就会将这个请求发送到指定的集群。
-6. 在将请求发送到集群时，Envoy 会根据该集群配置的负载均衡策略（比如轮询、随机、最少请求等），从集群中的多个服务实例（endpoints）中选择一个来发送请求。
+6. 在将请求发送到集群时，Envoy 会根据该集群配置的负载均衡策略（比如轮询、随机、最少请求等），从集群中的多个服务实例（Endpoints）中选择一个来发送请求。
 
 其实 envoy 就相当于一个 Nginx ，但是有 Nginx 不能实现的很多高级功能罢了。
 
