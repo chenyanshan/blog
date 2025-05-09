@@ -59,11 +59,11 @@ Envoy 的配置由 监听器（Listeners）、过滤器链（Filter Chains）、
 5. Envoy 接下来就会将这个请求发送到指定的集群。
 6. 在将请求发送到集群时，Envoy 会根据该集群配置的负载均衡策略（比如轮询、随机、最少请求等），从集群中的多个服务实例（Endpoints）中选择一个来发送请求。
 
-其实 envoy 就相当于一个 Nginx ，但是有 Nginx 不能实现的很多高级功能罢了。
+其实 Envoy 就相当于一个 Nginx ，但是有 Nginx 不能实现的很多高级功能罢了。
 
 xDS: DS 配置自动发现：
 
-​	因为有多种配置自动发现，所以叫 xDS ，xDS 中有多种配置发现，有 LDS、CDS、RDS、EDS、SDS 等。即，我们可以通过 xDS 机制，动态修改 Envoy 的所有配置。这也是 Envoy 成为通用流量管理工具的原因，因为你只需要把用户需求“翻译”成 Envoy 的配置文件，下发给 evnoy ，即可实现 envoy 所拥有的所有功能。例如，你需要实现一个带有很多高级功能的 ingress 控制器，你只需要把 ingress 的配置，翻译成 envoy 的配置，然后通过 xDS 发下给 envoy 即可。
+​	因为有多种配置自动发现，所以叫 xDS ，xDS 中有多种配置发现，有 LDS、CDS、RDS、EDS、SDS 等。即，我们可以通过 xDS 机制，动态修改 Envoy 的所有配置。这也是 Envoy 成为通用流量管理工具的原因，因为你只需要把用户需求“翻译”成 Envoy 的配置文件，下发给 evnoy ，即可实现 Envoy 所拥有的所有功能。例如，你需要实现一个带有很多高级功能的 ingress 控制器，你只需要把 ingress 的配置，翻译成 Envoy 的配置，然后通过 xDS 发下给 Envoy 即可。
 
 # 三、基础 Envoy 示例
 这里给一个简单的 Envoy 示例，演示一下 Envoy 的大致工作原理。 [下面演示的配置文件位置](https://github.com/chenyanshan/LearningManifests/tree/main/4-envoy%E5%9F%BA%E7%A1%80%E7%A4%BA%E4%BE%8B)
