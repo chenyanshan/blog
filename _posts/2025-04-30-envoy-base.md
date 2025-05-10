@@ -37,7 +37,7 @@ Envoy 特性：
 
 # 二、Envoy 架构
 
-![envoy-base-workflow](http://chenyanshan.github.io/images/envoy-base/envoy-base-workflow.png)
+![envoy-base-workflow](http://hihihiai.com/images/envoy-base/envoy-base-workflow.png)
 
 <center>Envoy 基础架构图</center>
 

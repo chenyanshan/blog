@@ -93,10 +93,10 @@ tags: linux
 
 脚本：https://github.com/chenyanshan/sh/blob/master/ddos_firewall.sh
 
-[image-1]:	https://chenyanshan.github.io/img/linux/sh/ddos_iptables/2%E7%8E%B0%E8%B1%A1_1.png?raw=true
-[image-2]:	https://chenyanshan.github.io/img/linux/sh/ddos_iptables/3code.png?raw=true
-[image-3]:	https://chenyanshan.github.io/img/linux/sh/ddos_iptables/3.png?raw=true
-[image-4]:	https://chenyanshan.github.io/img/linux/sh/ddos_iptables/4code2.png?raw=true
-[image-5]:	https://chenyanshan.github.io/img/linux/sh/ddos_iptables/5shell_2.png?raw=true
-[image-6]:	https://chenyanshan.github.io/img/linux/sh/ddos_iptables/7.jpg?raw=true
-[image-7]:	https://chenyanshan.github.io/img/linux/sh/ddos_iptables/8.jpg?raw=true	
+[image-1]:	https://hihihiai.com/img/linux/sh/ddos_iptables/2%E7%8E%B0%E8%B1%A1_1.png?raw=true
+[image-2]:	https://hihihiai.com/img/linux/sh/ddos_iptables/3code.png?raw=true
+[image-3]:	https://hihihiai.com/img/linux/sh/ddos_iptables/3.png?raw=true
+[image-4]:	https://hihihiai.com/img/linux/sh/ddos_iptables/4code2.png?raw=true
+[image-5]:	https://hihihiai.com/img/linux/sh/ddos_iptables/5shell_2.png?raw=true
+[image-6]:	https://hihihiai.com/img/linux/sh/ddos_iptables/7.jpg?raw=true
+[image-7]:	https://hihihiai.com/img/linux/sh/ddos_iptables/8.jpg?raw=true	
