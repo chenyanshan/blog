@@ -1,11 +1,9 @@
 
 
-
-
 ```
 layout: page
-title: "一个简单的 AIOps 的落地实现"
-date: 2025-05-10 09:14:07
+title:  "一个简单的 AIOps 的落地实现"
+date:  2025-05-10 09:14:07
 categories: AIOps
 tags:
   - AIOps
