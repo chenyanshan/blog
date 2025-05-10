@@ -1,6 +1,4 @@
-
-
-```
+---
 layout: page
 title:  "一个简单的 AIOps 的落地实现"
 date:  2025-05-10 09:14:07
@@ -8,7 +6,7 @@ categories: AIOps
 tags:
   - AIOps
   - AI
-```
+---
 
 AI 大时代已然到来，本文将分享一个 AIOps 的落地实现，即实现 ChatAIOps 与 Prometheus 告警内容的 AI 初步研判。这基本上是一次抛砖引玉的探索，鉴于细节繁多，文中将省略一些简单的配置过程，重点阐述核心思路和最终效果。感叹一句，AI 的进化实在太快，拥抱 AI，即拥抱未来！
 
