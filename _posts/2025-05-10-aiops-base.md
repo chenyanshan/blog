@@ -519,115 +519,115 @@ spec:
 
 ![image-20250510195054168](https://hihihiai.com/images/base-aiops/image-20250510195054168.png)
 
-### 1. **告警概览**
-- **告警名称**: Pod状态异常
-- **严重程度**: warning
-- **命名空间**: aiops
-- **主要受影响资源**: Pod `test-deployment-6db6fb878d-mgzzn`（状态 Pending）
-- **告警摘要**: Pod 无法调度到节点，持续时间超过5分钟，提示“pvc未绑定即时卷”。
+- ### 1. **告警概览**
+  - **告警名称**: Pod状态异常
+  - **严重程度**: warning
+  - **命名空间**: aiops
+  - **主要受影响资源**: Pod `test-deployment-6db6fb878d-mgzzn`（状态 Pending）
+  - **告警摘要**: Pod 无法调度到节点，持续时间超过5分钟，提示“pvc未绑定即时卷”。
 
----
+  ---
 
-### 2. **诊断分析**
-#### *初步分析*
-告警信息表明 Pod `test-deployment-6db6fb878d-mgzzn` 状态为 **Pending**，提示与调度失败直接相关。MCP 诊断显示，由于 PVC `test-data` 未绑定存储卷，导致 Pod 无法部署。
+  ### 2. **诊断分析**
+  #### *初步分析*
+  告警信息表明 Pod `test-deployment-6db6fb878d-mgzzn` 状态为 **Pending**，提示与调度失败直接相关。MCP 诊断显示，由于 PVC `test-data` 未绑定存储卷，导致 Pod 无法部署。
 
-#### *主要资源 Pod(test-deployment-6db6fb878d-mgzzn) 状态 (通过 MCP 获取)*
-- **状态**: Pending。
-- **MCP关键信息**:
-  1. `status.reason`: `Unschedulable`。
-  2. `message`: `pod has unbound immediate PersistentVolumeClaims`。
-  3. `resources.limits`: 申请了一个 ENI IPs 的资源（非存储相关）。
-  4. `volumes` 中引用了 PVC `test-data`。
+  #### *主要资源 Pod(test-deployment-6db6fb878d-mgzzn) 状态 (通过 MCP 获取)*
+  - **状态**: Pending。
+  - **MCP关键信息**:
+    1. `status.reason`: `Unschedulable`。
+    2. `message`: `pod has unbound immediate PersistentVolumeClaims`。
+    3. `resources.limits`: 申请了一个 ENI IPs 的资源（非存储相关）。
+    4. `volumes` 中引用了 PVC `test-data`。
 
-#### *关联资源 PersistentVolumeClaim(test-data) 状态 (通过 MCP 获取)*
-- **状态**: Pending。
-- **MCP关键信息**:
-  1. `storageClassName`: `cbs`。
-  2. `accessModes`: `ReadWriteOnce`。
-  3. `status.phase`: `Pending`, 未绑定到任何 PV。
-  4. PVC 指向的 PV 未在 MCP 中存在（完整 PV 列表中未发现 `test-data` 的绑定）。
+  #### *关联资源 PersistentVolumeClaim(test-data) 状态 (通过 MCP 获取)*
+  - **状态**: Pending。
+  - **MCP关键信息**:
+    1. `storageClassName`: `cbs`。
+    2. `accessModes`: `ReadWriteOnce`。
+    3. `status.phase`: `Pending`, 未绑定到任何 PV。
+    4. PVC 指向的 PV 未在 MCP 中存在（完整 PV 列表中未发现 `test-data` 的绑定）。
 
-#### *关联资源 StorageClass(cbs) 状态 (通过 MCP 获取)*
-- **信息**:
-  - `volumeBindingMode`: `Immediate`（PVC 创建时立即绑定 PV，但实际未完成）。
-  - `provisioner`: `com.tencent.cloud.csi.cbs`（转为外部存储插件动态供应）。
+  #### *关联资源 StorageClass(cbs) 状态 (通过 MCP 获取)*
+  - **信息**:
+    - `volumeBindingMode`: `Immediate`（PVC 创建时立即绑定 PV，但实际未完成）。
+    - `provisioner`: `com.tencent.cloud.csi.cbs`（转为外部存储插件动态供应）。
 
----
+  ---
 
-### 3. **根本原因推断**
-1. **根本原因**:
-   - PVC `test-data` 未绑定 PV 的原因为 **外部 Provisioner 未能成功动态创建存储卷**，或 PVC 的需求与集群中现有 PV 不匹配（如大小、访问模式、StorageClass 等）。
-   - 可能的底层问题包括：
-     - Provisioner `com.tencent.cloud.csi.cbs` 的 CSI 插件无法正常创建存储卷（故障或资源配额耗尽）。
-     - PVC 请求的 `storage: 5Gi`, `accessModes: ReadWriteOnce` 需要的存储条件暂时无法满足。
-     - 资源逻辑错误（如 PVC 名称与已有的 PV 未关联，或 PVC 中配置错误）。
+  ### 3. **根本原因推断**
+  1. **根本原因**:
+    - PVC `test-data` 未绑定 PV 的原因为 **外部 Provisioner 未能成功动态创建存储卷**，或 PVC 的需求与集群中现有 PV 不匹配（如大小、访问模式、StorageClass 等）。
+    - 可能的底层问题包括：
+      - Provisioner `com.tencent.cloud.csi.cbs` 的 CSI 插件无法正常创建存储卷（故障或资源配额耗尽）。
+      - PVC 请求的 `storage: 5Gi`, `accessModes: ReadWriteOnce` 需要的存储条件暂时无法满足。
+      - 资源逻辑错误（如 PVC 名称与已有的 PV 未关联，或 PVC 中配置错误）。
 
-2. **补充信息** (依赖后续确认):
-   - Provisioner `com.tencent.cloud.csi.cbs` 的组件（如 `csi-provisioner` 容器）是否正常运行（需检查相关组件状态和日志）。
-   - 集群是否有剩余的存储资源或配额来满足该 PVC 的请求。
-   - PVC 所在的工作负载的 StorageClass 是否可以灵活变更（如尝试将 storage-class 设置为 `cfs`，即使它不是默认项）。
+  2. **补充信息** (依赖后续确认):
+    - Provisioner `com.tencent.cloud.csi.cbs` 的组件（如 `csi-provisioner` 容器）是否正常运行（需检查相关组件状态和日志）。
+    - 集群是否有剩余的存储资源或配额来满足该 PVC 的请求。
+    - PVC 所在的工作负载的 StorageClass 是否可以灵活变更（如尝试将 storage-class 设置为 `cfs`，即使它不是默认项）。
 
----
+  ---
 
-### 4. **处理建议**
-#### *步骤 1*:
-检查 PVC 配置的完整性和逻辑合理性:
-```yaml
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: test-data
-  namespace: aiops
-spec:
-  storageClassName: cbs
-  accessModes:
-    - ReadWriteOnce
-  selector: {}
-  resources:
-    requests:
-      storage: 5Gi # 注意大小与其他 PVC 对应判断。
-```
-若使用 PVC 要求 `5Gi`，但现有的存储资源可能已满或未支持该大小，需调整 `resources.requests.storage`（如参考其他 PVC：`mysql-pvc: 20Gi`, `redis-pvc: 10Gi`, `storage-loki-0: 10Gi`）。
+  ### 4. **处理建议**
+  #### *步骤 1*:
+  检查 PVC 配置的完整性和逻辑合理性:
+  ```yaml
+  apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: test-data
+    namespace: aiops
+  spec:
+    storageClassName: cbs
+    accessModes:
+      - ReadWriteOnce
+    selector: {}
+    resources:
+      requests:
+        storage: 5Gi # 注意大小与其他 PVC 对应判断。
+  ```
+  若使用 PVC 要求 `5Gi`，但现有的存储资源可能已满或未支持该大小，需调整 `resources.requests.storage`（如参考其他 PVC：`mysql-pvc: 20Gi`, `redis-pvc: 10Gi`, `storage-loki-0: 10Gi`）。
 
-#### *步骤 2*:
-尝试从外部 Provisioner 角度分析问题:
-```bash
-# 查看 provisioner 的相关 Pod 日志（如引用 com.tencent.cloud.csi.cbs 插件）
-kubectl describe pod <provisioner_pod> -n kube-system # namespace 大概率为 kube-system，也可能为监控命名空间 monitoring，视集群配置确认。
-# 进一步确认组件是否能够正确处理 PVC 请求。
-```
-检查 CSI 提供商的可用性与资源状况（如驱动映射、客户端密钥是否正确配置等）。
+  #### *步骤 2*:
+  尝试从外部 Provisioner 角度分析问题:
+  ```bash
+  # 查看 provisioner 的相关 Pod 日志（如引用 com.tencent.cloud.csi.cbs 插件）
+  kubectl describe pod <provisioner_pod> -n kube-system # namespace 大概率为 kube-system，也可能为监控命名空间 monitoring，视集群配置确认。
+  # 进一步确认组件是否能够正确处理 PVC 请求。
+  ```
+  检查 CSI 提供商的可用性与资源状况（如驱动映射、客户端密钥是否正确配置等）。
 
-#### *步骤 3*:
-根据根本原因尝试具体修复:
-1. 如果 Provisioner 检查正常，但 PVC 未能动态创建 PV，可尝试 **手动生成 PV 并手动绑定**：
-   ```yaml
-   # 创建一个手动 PV，假设 PVC 的规格为 5Gi ReadWriteOnce。
-   apiVersion: v1
-   kind: PersistentVolume
-   metadata:
-     name: manual-pv
-     labels:
-       app: manual-pv
-   spec:
-     capacity:
-       storage: 5Gi
-     accessModes:
-       - ReadWriteOnce
-     persistentVolumeReclaimPolicy: Delete
-     storageClassName: cbs
-     csi:
-       driver: com.tencent.cloud.csi.cbs
-       volumeAttributes:
-         storage.kubernetes.io/csiProvisionerIdentity: "external_provisioner_identity"
-       volumeHandle: manual-generated-handle # 必需使用集群支持的实际值，如云盘 ID。
-   ```
-   然后通过 kubectl 命令绑到 PVC：
-   ```bash
-   kubectl patch pvc test-data -n aiops -p {spec: {volumeName: manual-pv}}
-   ```
-2. 检查 PVC 可用的 PV 绑定可能性，如尝试删除并重新创建 PVC 以触发 Provisioner。
+  #### *步骤 3*:
+  根据根本原因尝试具体修复:
+  1. 如果 Provisioner 检查正常，但 PVC 未能动态创建 PV，可尝试 **手动生成 PV 并手动绑定**：
+    ```yaml
+    # 创建一个手动 PV，假设 PVC 的规格为 5Gi ReadWriteOnce。
+    apiVersion: v1
+    kind: PersistentVolume
+    metadata:
+      name: manual-pv
+      labels:
+        app: manual-pv
+    spec:
+      capacity:
+        storage: 5Gi
+      accessModes:
+        - ReadWriteOnce
+      persistentVolumeReclaimPolicy: Delete
+      storageClassName: cbs
+      csi:
+        driver: com.tencent.cloud.csi.cbs
+        volumeAttributes:
+          storage.kubernetes.io/csiProvisionerIdentity: "external_provisioner_identity"
+        volumeHandle: manual-generated-handle # 必需使用集群支持的实际值，如云盘 ID。
+    ```
+    然后通过 kubectl 命令绑到 PVC：
+    ```bash
+    kubectl patch pvc test-data -n aiops -p {spec: {volumeName: manual-pv}}
+    ```
+  2. 检查 PVC 可用的 PV 绑定可能性，如尝试删除并重新创建 PVC 以触发 Provisioner。
 
 ---
 
