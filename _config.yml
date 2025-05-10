@@ -6,8 +6,8 @@ highlighter:      rouge
 title:            Hi AI!
 tagline:          '费曼学习法实践'
 description:      '深入云原生架构，提升大变局下竞争力，拥抱 AI ，拥抱未来。'
-url:              https://chenyanshan.github.io
-baseurl:          '/blog'
+url:              https://hihihiai.com
+baseurl:          '/'
                   # the optional subpath of your site, e.g. "/blog"
                   # NB: This applies to all pages in your Jekyll site.
                   # If you want to move just the blog index pages but keep
@@ -16,7 +16,7 @@ baseurl:          '/blog'
 
 author:
   name:           '燕山'
-  url:            https://twitter.com/fongandrewc
+  url:            https://hihihiai.com
 
 paginate:         5
 # paginate_path:    '/page:num'
