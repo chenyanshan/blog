@@ -20,7 +20,7 @@ tags:
 
 ### 1. 安装方式介绍
 
-主流的 istio 安装方式分 istioctl 和 Helm 两种。`istioctl` 作为 Istio 官方推荐的工具，其优势在于提供了强大的配置验证、与 `IstioOperator` API 的紧密集成以及针对不同环境的自动检测能力，确保了安装的可靠性和安全性；但可能需要管理不同版本的二进制文件。相较而言，`Helm` 的优势在于能够轻松融入现有的 Helm 生态系统，利用其成熟的发布和升级管理功能，并能自动修剪旧资源；然而，它在安装时的检查和验证不如 `istioctl` 全面，且某些特定管理任务可能更为复杂。
+主流的 istio 安装方式分 `istioctl` 和 `Helm` 两种。`istioctl` 作为 Istio 官方推荐的工具，其优势在于提供了强大的配置验证、与 `IstioOperator` API 的紧密集成以及针对不同环境的自动检测能力，确保了安装的可靠性和安全性；但可能需要管理不同版本的二进制文件。相较而言，`Helm` 的优势在于能够轻松融入现有的 Helm 生态系统，利用其成熟的发布和升级管理功能，并能自动修剪旧资源；然而，它在安装时的检查和验证不如 `istioctl` 全面，且某些特定管理任务可能更为复杂。
 
 这里使用`istioctl`进行演示，`istioctl` 有 `profile` 的概念，在安装的时候指定不同的 `profile` 就能安装不同的组件，下面是其 `profile` 组件对应安装的组件图。
 
@@ -43,8 +43,8 @@ tags:
 
 #### 我的环境：
 
-- Kubernetes: v1.30
-- istioctl: 1.25.2
+- `Kubernetes`: v1.30
+- `istioctl`: 1.25.2
 
 需要注意的是，Istio 的版本对于 Kubernetes 的版本有要求，即固定 Kubernetes 版本，只能安装某些版本的 Istio，这是具体的对应关系表：[Istio 和 Kubernetes 版本支持关系](https://istio.io/latest/docs/releases/supported-releases/)
 
@@ -486,8 +486,8 @@ metadata:
   namespace: istio-test
 spec:
   selector:
-  	# 此处是配置的具体使用哪个 ingressgateway pod 。
-  	# 此处是选中了 istio-system 中标签包含 istio: ingressgateway 的 pod 。
+  # 此处是配置的具体使用哪个 ingressgateway pod 。
+  # 此处是选中了 istio-system 中标签包含 istio: ingressgateway 的 pod 。
     istio: ingressgateway
   servers:
   - port:
