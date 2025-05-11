@@ -1,7 +1,7 @@
 ---
 layout: page
 title:  "Istio 基础安装和使用"
-date:  2025-05-11 22:14:07
+date:  2025-05-11 10:14:07
 categories: 云原生
 tags:
   - 服务网格
@@ -488,9 +488,9 @@ metadata:
   namespace: istio-test
 spec:
   selector:
-    istio: ingressgateway # 此处是配置的具体使用哪个 ingressgateway pod 。
-    											# 此处是选中了 istio-system 中标签包含 istio: ingressgateway 
-    											# 的 pod 。
+  	# 此处是配置的具体使用哪个 ingressgateway pod 。
+  	# 此处是选中了 istio-system 中标签包含 istio: ingressgateway 的 pod 。
+    istio: ingressgateway
   servers:
   - port:
       number: 80
