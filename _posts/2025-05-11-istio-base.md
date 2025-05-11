@@ -52,7 +52,7 @@ tags:
 
 #### 下载和安装
 
-1. 下载安装最新版本：
+- 下载安装最新版本：
 
 ```bash
 ~$ curl -L https://istio.io/downloadIstio | sh -
@@ -65,7 +65,7 @@ bin  LICENSE  manifests  manifest.yaml  README.md  samples  tools
 
 如果上面命令无法下载 `istio` ，可以去 [Istio Github Releases 页面](https://github.com/istio/istio/releases/tag/1.26.0) 下载，解压后也是同样流程安装。
 
-2. 下载指定版本的 `istioctl`:
+- 下载指定版本的 `istioctl`:
 
 ```bash
 $ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.26.0 TARGET_ARCH=x86_64 sh -
@@ -73,7 +73,7 @@ $ curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.26.0 TARGET_ARCH=x86_
 
 其他操作流程还是和上面类似。
 
-3. 安装 istio 到集群。
+- 安装 istio 到集群。
 
 ```
 $ istioctl install --set profile=default -y
@@ -83,7 +83,7 @@ $ istioctl install --set profile=default -y
 
 使用的名称空间为 `istio-system`
 
-4. 安装 istio 到指定集群。
+- 安装 istio 到指定集群。
 
 ``` bash
 $ istioctl install --kubeconfig=/home/ubuntu/.kube/test-cluster-kueconfig --set profile=default -y
@@ -91,7 +91,7 @@ $ istioctl install --kubeconfig=/home/ubuntu/.kube/test-cluster-kueconfig --set 
 
 `istioctl` 也支持 `--kueconfig` 命令。
 
-5. 卸载 istio。
+- 卸载 istio。
 
 ```bash
 $ istioctl uninstall -y --purge
