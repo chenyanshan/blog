@@ -1,6 +1,6 @@
 ---
 layout: page
-title: "Istio Envoy Sidecar 网络劫持原理"
+title: "Istio Sidecar：Pod 内流量劫持原理与 Envoy 工作机制"
 date: 2025-05-22 16:30:07
 categories: 服务网格
 tags:
