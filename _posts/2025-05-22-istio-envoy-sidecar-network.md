@@ -1,6 +1,6 @@
 ---
 layout: page
-title: "Istio Sidecar：Pod 内流量劫持原理与 Envoy 工作机制"
+title: "Istio Sidecar：流量劫持原理与 Envoy 工作机制"
 date: 2025-05-22 16:30:07
 categories: 服务网格
 tags:
@@ -118,7 +118,7 @@ spec:
 
 ## 二、Envoy Sidecar 如何接管 Pod 进出流量？
 
-​    当一个 Pod 启动时，其底层首先会启动一个名为 "Pause" 的特殊容器。这个 Pause 容器的主要作用是建立并持有 Pod 的网络命名空间（Network Namespace）。随后启动的 Pod 内所有其他业务容器以及 Istio Sidecar 容器（如 `istio-proxy`）都会共享这同一个 Pause 容器的网络命名空间。
+​    当一个 Pod 启动时，容器引擎首先会启动一个名为 "Pause" 的特殊容器。这个 Pause 容器的主要作用是建立并持有 Pod 的网络命名空间（Network Namespace）。随后启动的 Pod 内所有其他业务容器以及 Istio Sidecar 容器（如 `istio-proxy`）都会共享这同一个 Pause 容器的网络命名空间。
 
 ​	在业务容器启动之前，如果 Pod 被注入了 Istio Sidecar，会先运行一个名为 `istio-init` 的初始化容器。`istio-init` 容器的关键任务是修改 Pod 网络命名空间内的 `iptables` 规则。通过这些 `iptables` 规则，从而实现 Pod 所有出入的流量，都被拦截至 `Envoy Sidecar`。
 
