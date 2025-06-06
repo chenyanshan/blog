@@ -2,5 +2,68 @@
 # Use a comment to ensure Jekyll reads the file to be transformed into CSS later
 # only main files contain this front matter, not partials.
 ---
+$gray-1: #f9f9f9 !default; // 最亮的灰色 (用于标题)
+$gray-2: #e5e5e5 !default; // 亮灰色 (用于正文)
+$gray-3: #ccc !default;    // 中亮灰色
+$gray-4: #767676 !default; // 中暗灰色 (用于次要文字)
+$gray-5: #313131 !default; // 深灰色 (用于边框)
+$gray-6: #1c1c1c !default; // 最深的灰色 (用于背景)
 
+// 2. 基础颜色 (可以保持不变，或根据喜好微调)
+$red: #ac4142 !default;
+$orange: #d28445 !default;
+$yellow: #f4bf75 !default;
+$green: #90a959 !default;
+$cyan: #75b5aa !default;
+$blue: #268bd2 !default; // 这个蓝色在深色背景下可能不够亮，可以考虑换成 #58a6ff
+$brown: #8f5536 !default;
+
+// --- (字体和布局等变量保持不变) ---
+$root-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Arial, sans-serif !default;
+$root-font-size: 1rem !default;
+$root-line-height: 1.5 !default;
+// --- (以上变量无需修改) ---
+
+
+// 3. 应用新的颜色配置
+$body-color: $gray-2 !default;          // 正文颜色 (使用亮灰色)
+$body-muted: $gray-4 !default;         // 次要文字颜色 (使用中暗灰色)
+$body-bg: $gray-6 !default;            // 页面背景 (使用最深的灰色)
+$link-color: #58a6ff !default;         // 链接颜色 (使用一个更亮的蓝色以提高对比度)
+$heading-color: $gray-1 !default;      // 标题颜色 (使用最亮的灰色)
+
+$border-color: $gray-5 !default;       // 边框颜色 (使用深灰色，比背景稍亮)
+
+// --- (其他布局变量无需修改) ---
+$border-radius: 300px !default;
+$padding-v: 1em !default;
+$padding-h: 1.5em !default;
+$heading-spacing: 0.5rem !default;
+$section-spacing: 2rem !default;
+$sidebar-width: 18rem !default;
+
+$large-breakpoint: 49rem !default;
+$large-font-size: 1.25rem !default;
+
+// 4. 调整阴影
+// 在深色背景下，黑色阴影 (rgba(0,0,0,...)) 将不可见。
+// 可以选择移除阴影，或者使用一个非常微妙的亮色阴影，但通常直接去掉或使用边框效果更好。
+// 这里我们保持不变，但效果会不明显，您可以根据需要调整。
+$box-shadow-size: 1px !default;
+$box-shadow-opacity: 0.16 !default;
+$default-box-shadow: $box-shadow-size $box-shadow-size $box-shadow-size rgba(0, 0, 0, $box-shadow-opacity);
+
+$code-font-family: Menlo, Monaco, 'Courier New', monospace !default;
+$code-color: #bf616a !default;
+
+// Hyde theming (侧边栏已经是深色的，无需修改)
+$sidebar-bg-color: #202020 !default;
+$sidebar-fg-color: #fff !default;
+$sidebar-sticky: true !default;
+$layout-reverse: false !default;
+
+$sidebar-title-color: $sidebar-fg-color !default;
+$sidebar-link-color: $sidebar-fg-color !default;
+$sidebar-text-color: rgba($sidebar-fg-color, 0.75) !default;
+$sidebar-icon-color: rgba($sidebar-fg-color, 0.85) !default;
 @import "hydeout";
