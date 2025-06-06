@@ -2,37 +2,40 @@
 # Use a comment to ensure Jekyll reads the file to be transformed into CSS later
 # only main files contain this front matter, not partials.
 ---
-$gray-1: #f9f9f9 !default; // 最亮的灰色 (用于标题)
-$gray-2: #e5e5e5 !default; // 亮灰色 (用于正文)
-$gray-3: #ccc !default;    // 中亮灰色
-$gray-4: #767676 !default; // 中暗灰色 (用于次要文字)
-$gray-5: #313131 !default; // 深灰色 (用于边框)
-$gray-6: #1c1c1c !default; // 最深的灰色 (用于背景)
+// 1. 深色主题灰度色板
+$gray-1: #f0f0f0 !default; // 最亮的灰色 (用于标题和重点文字)
+$gray-2: #dcdcdc !default; // 亮灰色 (用于正文)
+$gray-3: #aeaeae !default; // 中亮灰色
+$gray-4: #888888 !default; // 中暗灰色 (用于次要文字)
+$gray-5: #333333 !default; // 深灰色 (用于边框、代码块背景)
+$gray-6: #1e1e1e !default; // 最深的灰色 (用于页面背景)
 
-// 2. 基础颜色 (可以保持不变，或根据喜好微调)
+// 2. 基础颜色
 $red: #ac4142 !default;
-$orange: #d28445 !default;
+$orange: #d28445 !default; // 这个橙色很适合用作代码文字颜色
 $yellow: #f4bf75 !default;
 $green: #90a959 !default;
 $cyan: #75b5aa !default;
-$blue: #268bd2 !default; // 这个蓝色在深色背景下可能不够亮，可以考虑换成 #58a6ff
+$blue: #58a6ff !default;   // 鲜艳的蓝色，用于链接
 $brown: #8f5536 !default;
 
-// --- (字体和布局等变量保持不变) ---
+// 字体和布局等变量保持不变...
 $root-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Arial, sans-serif !default;
 $root-font-size: 1rem !default;
 $root-line-height: 1.5 !default;
-// --- (以上变量无需修改) ---
-
 
 // 3. 应用新的颜色配置
-$body-color: $gray-2 !default;          // 正文颜色 (使用亮灰色)
-$body-muted: $gray-4 !default;         // 次要文字颜色 (使用中暗灰色)
-$body-bg: $gray-6 !default;            // 页面背景 (使用最深的灰色)
-$link-color: #58a6ff !default;         // 链接颜色 (使用一个更亮的蓝色以提高对比度)
-$heading-color: $gray-1 !default;      // 标题颜色 (使用最亮的灰色)
+$body-color: $gray-2 !default;
+$body-muted: $gray-4 !default;
+$body-bg: $gray-6 !default;
+$link-color: $blue !default;
+$heading-color: $gray-1 !default;
+$border-color: $gray-5 !default;
 
-$border-color: $gray-5 !default;       // 边框颜色 (使用深灰色，比背景稍亮)
+// 4. 为代码块指定新的颜色
+$code-font-family: Menlo, Monaco, 'Courier New', monospace !default;
+// 将代码颜色设置为橙色，这在深色背景上清晰且美观
+$code-color: $orange !default; 
 
 // --- (其他布局变量无需修改) ---
 $border-radius: 300px !default;
