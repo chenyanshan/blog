@@ -75,15 +75,6 @@ $sidebar-icon-color: rgba($sidebar-fg-color, 0.85) !default;
  * 将它们放在 @import 之后可以确保最高优先级。
 */
 
-// 1. 修复内联代码块样式 (解决“白底太亮”问题)
-code {
-  background-color: $gray-5;
-  color: $code-color;
-  padding: 0.2em 0.4em;
-  margin: 0;
-  font-size: 85%;
-  border-radius: 6px;
-}
 
 // 2. 修复多行代码块背景刺眼的问题 (解决 YAML/Shell 等代码块的白色背景问题)
 .highlight,
