@@ -2,12 +2,12 @@
 # Use a comment to ensure Jekyll reads the file to be transformed into CSS later
 # only main files contain this front matter, not partials.
 ---
-// 1. 深色主题灰度色板
+// 1. 深色主题灰度色板 (最终版)
 $gray-1: #f0f0f0 !default; // 最亮的灰色 (用于标题和重点文字)
 $gray-2: #dcdcdc !default; // 亮灰色 (用于正文)
 $gray-3: #aeaeae !default; // 中亮灰色
 $gray-4: #888888 !default; // 中暗灰色 (用于次要文字)
-$gray-5: #242628 !default; // 深灰色 (用于边框、代码块背景)
+$gray-5: #333333 !default; // 深灰色 (用于边框、内联代码块背景)
 $gray-6: #1e1e1e !default; // 最深的灰色 (用于页面背景)
 
 // 2. 基础颜色
@@ -34,8 +34,7 @@ $border-color: $gray-5 !default;
 
 // 4. 为代码块指定新的颜色
 $code-font-family: Menlo, Monaco, 'Courier New', monospace !default;
-// 将代码颜色设置为橙色，这在深色背景上清晰且美观
-$code-color: $orange !default; 
+$code-color: $orange !default; // 将代码颜色设置为橙色
 
 // --- (其他布局变量无需修改) ---
 $border-radius: 300px !default;
@@ -48,16 +47,10 @@ $sidebar-width: 18rem !default;
 $large-breakpoint: 49rem !default;
 $large-font-size: 1.25rem !default;
 
-// 4. 调整阴影
-// 在深色背景下，黑色阴影 (rgba(0,0,0,...)) 将不可见。
-// 可以选择移除阴影，或者使用一个非常微妙的亮色阴影，但通常直接去掉或使用边框效果更好。
-// 这里我们保持不变，但效果会不明显，您可以根据需要调整。
+// 调整阴影 (在深色主题下基本不可见)
 $box-shadow-size: 1px !default;
 $box-shadow-opacity: 0.16 !default;
 $default-box-shadow: $box-shadow-size $box-shadow-size $box-shadow-size rgba(0, 0, 0, $box-shadow-opacity);
-
-$code-font-family: Menlo, Monaco, 'Courier New', monospace !default;
-$code-color: #bf616a !default;
 
 // Hyde theming (侧边栏已经是深色的，无需修改)
 $sidebar-bg-color: #202020 !default;
@@ -69,4 +62,33 @@ $sidebar-title-color: $sidebar-fg-color !default;
 $sidebar-link-color: $sidebar-fg-color !default;
 $sidebar-text-color: rgba($sidebar-fg-color, 0.75) !default;
 $sidebar-icon-color: rgba($sidebar-fg-color, 0.85) !default;
+
+// 导入核心样式
 @import "hydeout";
+
+
+/*
+ * -----------------------------------------------------------------------------
+ * 自定义覆盖 (Custom Overrides)
+ * -----------------------------------------------------------------------------
+ * 以下是为解决深色主题显示问题而添加的额外规则。
+ * 将它们放在 @import 之后可以确保最高优先级。
+*/
+
+// 1. 修复内联代码块样式 (解决“白底太亮”问题)
+code {
+  background-color: $gray-5;
+  color: $code-color;
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 85%;
+  border-radius: 6px;
+}
+
+// 2. 修复多行代码块背景刺眼的问题 (解决 YAML/Shell 等代码块的白色背景问题)
+.highlight,
+pre {
+  background-color: #1e2122 !important; // 使用您指定的背景色
+  border: 1px solid $gray-5;           // 使用边框代替阴影，效果更佳
+  border-radius: 8px;
+}
