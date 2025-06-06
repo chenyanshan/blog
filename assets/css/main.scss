@@ -75,33 +75,33 @@ $sidebar-icon-color: rgba($sidebar-fg-color, 0.85) !default;
  * 将它们放在 @import 之后可以确保最高优先级。
 */
 
-pre,
-.highlight {
-  background-color: #1e2122;                // 您指定的深黑色背景
-  border: 1px solid #333333;               // 一个比背景稍亮的边框
-  border-radius: 8px;                      // 圆角
-  padding: 1em;                            // 内边距，让代码不贴边
-  line-height: 1.4;                        // 增加行高，更易读
-  overflow: auto;                          // 内容超出时显示滚动条
+// 1. 为最外层的代码块容器 <div> 设置样式。这是我们唯一需要看到的“盒子”。
+div.highlight {
+  background-color: #1e2122;    // 您指定的深黑色背景
+  border: 1px solid #333333;   // 边框
+  border-radius: 8px;          // 圆角
+  padding: 1.2em;              // 内边距
+  margin-bottom: 1.5em;        // 和下方内容的间距
 }
 
-// 2. 关键：强行“透明化” <pre> 容器内部的 <code> 标签，避免套娃
-pre code,
-.highlight code {
-  background: none !important;             // 移除所有背景！
-  border: none !important;                 // 移除所有边框！
-  padding: 0 !important;                   // 移除所有内边距！
-  font-size: 1em;                          // 字体大小恢复正常 (不再二次缩小)
-  line-height: inherit;                    // 继承外部的行高
+// 2. 关键：移除内层的 <pre> 标签的所有“盒子”样式，让它变透明。
+div.highlight pre.highlight {
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 // 3. 为页面中其他地方的“行内代码” `<code>` (比如段落里的单个词) 设置样式
-//    这条规则不会影响到 <pre> 里的代码，因为它优先级较低
 code {
   background-color: #333333;
   color: #d28445;
   padding: 0.2em 0.4em;
-  margin: 0 0.2em;
   font-size: 85%;
   border-radius: 4px;
+}
+
+// 4. 安全措施：确保 <pre> 标签内部的 <code> 也不会有意外的背景
+pre code {
+    background: none !important;
 }
