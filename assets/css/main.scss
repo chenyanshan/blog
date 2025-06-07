@@ -2,5 +2,113 @@
 # Use a comment to ensure Jekyll reads the file to be transformed into CSS later
 # only main files contain this front matter, not partials.
 ---
+// 1. 深色主题灰度色板 (最终版)
+$gray-1: #f0f0f0 !default; // 最亮的灰色 (用于标题和重点文字)
+$gray-2: #e9e9e9 !default; // 亮灰色 (用于正文) - 已调亮
+$gray-3: #aeaeae !default; // 中亮灰色
+$gray-4: #a0a0a0 !default; // 中暗灰色 (用于次要文字) - 已调亮
+$gray-5: #c1c1c1 !default; // 深灰色 (用于边框、内联代码块背景)
+$gray-6: #1e1e1e !default; // 最深的灰色 (用于页面背景)
 
+
+// 2. 基础颜色
+$red: #ac4142 !default;
+$orange: #d28445 !default; // 这个橙色很适合用作代码文字颜色
+$yellow: #f4bf75 !default;
+$green: #90a959 !default;
+$cyan: #75b5aa !default;
+$blue: #58a6ff !default;   // 鲜艳的蓝色，用于链接
+$brown: #8f5536 !default;
+
+// 字体和布局等变量保持不变...
+$root-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Arial, sans-serif !default;
+$root-font-size: 1rem !default;
+$root-line-height: 1.5 !default;
+
+// 3. 应用新的颜色配置
+$body-color: $gray-2 !default;
+$body-muted: $gray-4 !default;
+$body-bg: $gray-6 !default;
+$link-color: $blue !default;
+$heading-color: $gray-1 !default;
+$border-color: $gray-5 !default;
+
+// 4. 为代码块指定新的颜色
+$code-font-family: Menlo, Monaco, 'Courier New', monospace !default;
+$code-color: $orange !default; // 将代码颜色设置为橙色
+
+// --- (其他布局变量无需修改) ---
+$border-radius: 300px !default;
+$padding-v: 1em !default;
+$padding-h: 1.5em !default;
+$heading-spacing: 0.5rem !default;
+$section-spacing: 2rem !default;
+$sidebar-width: 18rem !default;
+
+$large-breakpoint: 49rem !default;
+$large-font-size: 1.25rem !default;
+
+// 调整阴影 (在深色主题下基本不可见)
+$box-shadow-size: 1px !default;
+$box-shadow-opacity: 0.16 !default;
+$default-box-shadow: $box-shadow-size $box-shadow-size $box-shadow-size rgba(0, 0, 0, $box-shadow-opacity);
+
+// Hyde theming (侧边栏已经是深色的，无需修改)
+$sidebar-bg-color: #202020 !default;
+$sidebar-fg-color: #fff !default;
+$sidebar-sticky: true !default;
+$layout-reverse: false !default;
+
+$sidebar-title-color: $sidebar-fg-color !default;
+$sidebar-link-color: $sidebar-fg-color !default;
+$sidebar-text-color: rgba($sidebar-fg-color, 0.75) !default;
+$sidebar-icon-color: rgba($sidebar-fg-color, 0.85) !default;
+
+// 导入核心样式
 @import "hydeout";
+
+
+/*
+ * -----------------------------------------------------------------------------
+ * 自定义覆盖 (Custom Overrides)
+ * -----------------------------------------------------------------------------
+ * 以下是为解决深色主题显示问题而添加的额外规则。
+ * 将它们放在 @import 之后可以确保最高优先级。
+*/
+
+// 1. 为最外层的代码块容器 <div> 设置样式。这是我们唯一需要看到的“盒子”。
+div.highlight {
+  background-color: #1e2122;    // 您指定的深黑色背景
+  border: 1px solid #333333;   // 边框
+  border-radius: 8px;          // 圆角
+  padding: 1.2em;              // 内边距
+  margin-bottom: 1.5em;        // 和下方内容的间距
+}
+
+// 2. 关键：移除内层的 <pre> 标签的所有“盒子”样式，让它变透明。
+div.highlight pre.highlight {
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+// 3. 为页面中其他地方的“行内代码” `<code>` (比如段落里的单个词) 设置样式
+code {
+  background-color: #333333;
+  color: #d28445;
+  padding: 0.2em 0.4em;
+  font-size: 85%;
+  border-radius: 4px;
+}
+
+// 4. 安全措施：确保 <pre> 标签内部的 <code> 也不会有意外的背景
+pre code {
+    background: none !important;
+}
+
+strong, b {
+  color: #fde6c7;
+ // color: #fddaa9;
+//  color: #f4bf75;
+}
