@@ -4,9 +4,19 @@ title: "容器基础通信原理 veth pair 和 bridge"
 date: 2025-06-07 10:26:07
 categories: CNI
 tags:
-  - CNI
+  - CNI 
   - Kubernetes
   - 底层原理
+---
+---
+layout: page
+title: "Istio Sidecar：流量劫持原理与 Envoy 工作机制"
+date: 2025-05-22 16:30:07
+categories: 服务网格
+tags:
+  - 云原生
+  - 服务网格
+  - istio
 ---
 
     在 Docker 与 Kubernetes 的世界里，容器间的通信似乎是信手拈来、宛如魔法。然而，作为工程师，我们深知所谓的“魔法”不过是精巧技术的封装。一旦网络出现异常，或需要构建更复杂的拓扑结构，仅停留在会用层面是远远不够的。要揭开这层神秘面纱，就需要从最基础的 veth pair 和 bridge 入手，逐步剖析容器通信的底层原理。
