@@ -1,7 +1,7 @@
 ---
 layout: page
 title: "容器基础通信原理 veth pair 和 bridge"
-date: 2025-06-07 10:26:07
+date: 2025-06-07 00:26:07
 categories: CNI
 tags:
   - CNI 
