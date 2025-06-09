@@ -211,6 +211,7 @@ topology:
         - sysctl -w net.ipv6.conf.lo.disable_ipv6=1
         # 1. 在宿主机上开启IP转发。
         #- sysctl -w net.ipv4.conf.all.proxy_arp=1
+        - sysctl -w net.ipv4.ip_forward=1
         - ip addr add 10.0.1.2/24 dev eth1
         - ip link set eth1 up
         - ip route replace default via 10.0.1.1 dev eth1
