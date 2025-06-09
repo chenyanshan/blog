@@ -323,6 +323,8 @@ sudo clab deploy -t clab.yaml
 
 ![image-20250609001958881](https://hihihiai.com/images/containerlab-cni/image-20250609001958881.png)
 
+> gw 层： 模拟跨路由、跨机房或者跨公网连接。
+
 这个架构下，Pod1 把报文发送给 Pod2 流程：
 
 1. **初次请求** `Pod1` (`172.16.0.2`) 发出 ICMP 请求包给 `Pod2` (`172.16.1.2`)。数据包经由 `cni0` 网桥进入 `Host1` 内核。
@@ -348,7 +350,11 @@ sudo clab deploy -t clab.yaml
 
 **对于乘客 📖 来说，他只感觉自己一直在车里，根本没有意识到中间经历了“乘船过河”的环节。这正是 VXLAN 的精髓：为 Pod 通信构建无缝的虚拟隧道，完全屏蔽了底层网络的复杂性。**
 
+![Snipaste_2025-06-09_10-38-20](https://hihihiai.com/images/containerlab-cni/Snipaste_2025-06-09_10-38-20.png)
 
+VXLAN 将复杂的物理网络拓扑封装成一个虚拟的二层隧道。从 Pod 和 cni0 的视角来看，底层网络的复杂性被完全屏蔽，所有节点都如同直连在同一个交换机上，通信畅行无阻。
+
+### 具体通信时候报文情况
 
 Pod1 Ping Pod2 时，Host2 eth1 抓包情况:
 
@@ -372,6 +378,30 @@ da:9d:2a:11:e4:fc > 92:2a:0a:03:e0:d5, ethertype IPv4 (0x0800), length 98: 172.1
 ```
 
 报文的封装形式为： `IP -> UDP -> VXLAN -> IP`
+
+host2 cni0 抓包情况：
+```shell
+host2:~# tcpdump -pne -i cni0
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on cni0, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+01:45:43.131762 aa:c1:ab:df:b9:1a > ff:ff:ff:ff:ff:ff, ethertype ARP (0x0806), length 42: Request who-has 172.16.1.2 tell 172.16.1.1, length 28
+01:45:43.131782 aa:c1:ab:62:7a:01 > aa:c1:ab:df:b9:1a, ethertype ARP (0x0806), length 42: Reply 172.16.1.2 is-at aa:c1:ab:62:7a:01, length 28
+01:45:43.131793 aa:c1:ab:df:b9:1a > aa:c1:ab:62:7a:01, ethertype IPv4 (0x0800), length 98: 172.16.0.2 > 172.16.1.2: ICMP echo request, id 228, seq 1, length 64
+01:45:43.131812 aa:c1:ab:62:7a:01 > aa:c1:ab:df:b9:1a, ethertype IPv4 (0x0800), length 98: 172.16.1.2 > 172.16.0.2: ICMP echo reply, id 228, seq 1, length 64
+01:45:48.337412 aa:c1:ab:62:7a:01 > aa:c1:ab:df:b9:1a, ethertype ARP (0x0806), length 42: Request who-has 172.16.1.1 tell 172.16.1.2, length 28
+01:45:48.337494 aa:c1:ab:df:b9:1a > aa:c1:ab:62:7a:01, ethertype ARP (0x0806), length 42: Reply 172.16.1.1 is-at aa:c1:ab:df:b9:1a, length 28
+```
+
+host1 cni0 抓包情况：
+```shell
+host1:~# tcpdump -pne -i cni0
+tcpdump: verbose output suppressed, use -v[v]... for full protocol decode
+listening on cni0, link-type EN10MB (Ethernet), snapshot length 262144 bytes
+01:47:51.114060 aa:c1:ab:00:3c:b9 > aa:c1:ab:a0:f0:76, ethertype IPv4 (0x0800), length 98: 172.16.0.2 > 172.16.1.2: ICMP echo request, id 229, seq 1, length 64
+01:47:51.114243 aa:c1:ab:a0:f0:76 > aa:c1:ab:00:3c:b9, ethertype IPv4 (0x0800), length 98: 172.16.1.2 > 172.16.0.2: ICMP echo reply, id 229, seq 1, length 64
+```
+
+
 
 ​	本质上，VXLAN 凭借其“隧道”机制，实现了跨越三层网络的组网能力。只要承载“隧道”的物理主机之间 IP 可达，数据包在对端节点被解封装后，对于 Pod 而言，整个通信过程就如同在一个无缝的虚拟内网中进行，彻底屏蔽了底层物理网络的复杂性与边界。
 
