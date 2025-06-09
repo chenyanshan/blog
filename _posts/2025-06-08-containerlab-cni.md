@@ -1,6 +1,6 @@
 ---
 layout: page
-title:  "Host-GW, Vxlan, IPIP：K8s 跨节点通信原理与手动复现"
+title:  "Host-GW, VXLAN, IPIP：K8s 跨节点通信原理与手动复现"
 date:  2025-06-08 14:14:07
 categories: CNI
 tags:
@@ -8,7 +8,7 @@ tags:
   - Kubernetes
 ---
 
-​	Kubernetes 网络是其体系中公认的复杂部分，尤其 CNI 更是让许多工程师望而却步。尽管我们日常使用 Calico、Flannel 等 CNI 插件，但其底层工作原理却常常不甚明了。许多人满足于“能用即可”，但作为工程师，若不理解底层机制，在排查网络问题时便会束手无策。实际上，抛开复杂的控制平面，数据平面的核心原理可归结为几种固定的实现模式。本文旨在揭示这些底层技术，不谈抽象理论，而是通过手动实践，复现 Host-GW、Vxlan 和 IPIP 这三种经典的数据平面模型，展示其背后由哪些基础的 Linux 网络功能所支撑。
+​	Kubernetes 网络是其体系中公认的复杂部分，尤其 CNI 更是让许多工程师望而却步。尽管我们日常使用 Calico、Flannel 等 CNI 插件，但其底层工作原理却常常不甚明了。许多人满足于“能用即可”，但作为工程师，若不理解底层机制，在排查网络问题时便会束手无策。实际上，抛开复杂的控制平面，数据平面的核心原理可归结为几种固定的实现模式。本文旨在揭示这些底层技术，不谈抽象理论，而是通过手动实践，复现 Host-GW、VXLAN 和 IPIP 这三种经典的数据平面模型，展示其背后由哪些基础的 Linux 网络功能所支撑。
 
 基础知识：[容器基础通信原理 veth pair 和 bridge](https://hihihiai.com/cni/2025/06/07/cni-base-veth-pair-bridge.html)
 
@@ -171,7 +171,7 @@ listening on eth1, link-type EN10MB (Ethernet), snapshot length 262144 bytes
 
 
 
-# 二、Vxlan
+# 二、VXLAN
 
 ​	如果说 Host-GW 是在平坦开阔的高速公路上开车，那么 VXLAN 就是把整辆车开进一个集装箱，通过货运铁路送到目的地。
 
@@ -184,7 +184,7 @@ set -v
 sudo clab destroy -t clab.yaml --cleanup
 
 cat <<EOF> clab.yaml | clab deploy -t clab.yaml -
-name: flannel-vxlan
+name: flannel-VXLAN
 topology:
   nodes:
     gw1:
@@ -200,7 +200,6 @@ topology:
         - ip addr add 10.0.1.1/24 dev eth2
         - ip link set eth2 up
         - ip route add 10.0.2.0/24 via 192.168.0.200
-        - iptables -t nat -A POSTROUTING -s 10.0.0.0/16 ! -d 10.0.0.0/16 -j MASQUERADE
 
     host1:
         kind: linux
@@ -211,7 +210,7 @@ topology:
         - sysctl -w net.ipv6.conf.default.disable_ipv6=1
         - sysctl -w net.ipv6.conf.lo.disable_ipv6=1
         # 1. 在宿主机上开启IP转发。
-        - sysctl -w net.ipv4.conf.all.proxy_arp=1
+        #- sysctl -w net.ipv4.conf.all.proxy_arp=1
         - ip addr add 10.0.1.2/24 dev eth1
         - ip link set eth1 up
         - ip route replace default via 10.0.1.1 dev eth1
@@ -224,12 +223,14 @@ topology:
         - brctl addbr cni0
         - ip addr add 172.16.0.1/24 dev cni0
         - ip link set dev cni0 up
-        - brctl addif cni0 pod1_veth_piar
-        - ip link set dev pod1_veth_piar up
+        - brctl addif cni0 pod1-veth-paic
+        - ip link set dev pod1-veth-paic up
 
         # 4. 添加到对端Pod子网的路由。
-        - ip addr add 172.16.0.0/32 dev flannel.1
-        - ip route add 172.16.1.0/24 via 172.16.1.0 dev flannel.1 onlink
+        # 给 flannel.1 增加上 IP 后，下一跳设置为对端 flannel.1 IP 也可行。
+        #- ip addr add 172.16.0.0/32 dev flannel.1
+        #- ip route add 172.16.1.0/24 via 172.16.1.0 dev flannel.1 onlink
+        - ip route add 172.16.1.0/24 via 172.16.1.1 dev flannel.1 onlink
 
         # 5. 添加静态FDB条目，用于引导广播（如初始ARP请求）。
         - bridge fdb append to 00:00:00:00:00:00 dst 10.0.2.2 dev flannel.1
@@ -259,7 +260,6 @@ topology:
         - ip addr add 10.0.2.1/24 dev eth2
         - ip link set eth2 up
         - ip route add 10.0.1.0/24 via 192.168.0.100
-        - iptables -t nat -A POSTROUTING -s 10.0.0.0/16 ! -d 10.0.0.0/16 -j MASQUERADE
 
     host2:
         kind: linux
@@ -283,17 +283,17 @@ topology:
         - brctl addbr cni0
         - ip addr add 172.16.1.1/24 dev cni0
         - ip link set dev cni0 up
-        - brctl addif cni0 pod2_veth_piar
-        - ip link set dev pod2_veth_piar up
+        - brctl addif cni0 pod2-veth-paic
+        - ip link set dev pod2-veth-paic up
 
         # 4. 添加到对端Pod子网的路由。
-        - ip addr add 172.16.1.0/32 dev flannel.1
-        - ip route add 172.16.0.0/24 via 172.16.0.0 dev flannel.1 onlink
+        #- ip addr add 172.16.1.0/32 dev flannel.1
+        - ip route add 172.16.0.0/24 via 172.16.0.1 dev flannel.1 onlink
 
         # 5. 添加指向另一台宿主机的静态FDB条目。
         - bridge fdb append to 00:00:00:00:00:00 dst 10.0.1.2 dev flannel.1
         # 使用组播
-        # - ip link add flannel.1 type vxlan id 1 dev eth1 group 239.1.1.1 dstport 4789
+        # - ip link add flannel.1 type VXLAN id 1 dev eth1 group 239.1.1.1 dstport 4789
 
     pod2:
         kind: linux
@@ -311,8 +311,8 @@ topology:
      - endpoints: ["gw1:eth1", "gw2:eth1"]
      - endpoints: ["gw1:eth2", "host1:eth1"]
      - endpoints: ["gw2:eth2", "host2:eth1"]
-     - endpoints: ["host1:pod1_veth_piar", "pod1:eth1"]
-     - endpoints: ["host2:pod2_veth_piar", "pod2:eth1"]
+     - endpoints: ["host1:pod1-veth-paic", "pod1:eth1"]
+     - endpoints: ["host2:pod2-veth-paic", "pod2:eth1"]
 
 EOF
 
@@ -333,7 +333,7 @@ sudo clab deploy -t clab.yaml
 4. **广播的“定向封装”** 这个 ARP 广播请求被发往 `flannel.1` 设备。此时，一个**预设的关键规则** (`bridge fdb append to 00:00:00:00:00:00 dst 10.0.2.2 dev flannel.1`) 发挥了作用，它告诉 `flannel.1` 设备：“所有广播帧，都不要在本地泛洪，而是将它封装成一个单播 UDP 包，发往 `Host2`（`10.0.2.2`）”。
 5. **远端响应** `Host2` 收到 UDP 包，解封装后得到内部的 ARP 请求。`Host2` 的内核一看，这个请求查询的 `172.16.1.0` 正是自己 `flannel.1` 接口的 IP，于是立刻用自己 `flannel.1` 的 MAC 地址进行了应答。
 6. **学习路径并转发** `Host1` 收到 `Host2` 发回的 ARP 应答。
-7. **正式通信** `Host1` 将原始的 ICMP 包（源: `Pod1`, 目标: `Pod2`），使用刚刚学到的 `Host2` 的 MAC 地址进行二层封装，然后将这整个帧再次通过 `flannel.1` 设备进行 VXLAN 封装(`IP -> UDP -> VXLAN -> IP`)，单播发往 `Host2`。
+7. **正式通信** `Host1` 将原始的 ICMP 包（源: `Pod1`, 目标: `Pod2`），使用刚刚学到的 `Host2` 的 MAC 地址进行二层封装，然后将这整个帧再次通过 `flannel.1` 设备进行 VXLAN 封装(`IP -> UDP -> VXLAN -> IP`)，再通过正常网络发往 `Host2`。
 8. **最终送达** `Host2` 解封装后，将原始 ICMP 包通过本地的 `cni0` 网桥转发给 `Pod2`，通信成功。
 
 9. Pod2 返回： 相同路径返回报文即可。
@@ -352,7 +352,16 @@ sudo clab deploy -t clab.yaml
 
 ![Snipaste_2025-06-09_10-38-20](https://hihihiai.com/images/containerlab-cni/Snipaste_2025-06-09_10-38-20.png)
 
-VXLAN 将复杂的物理网络拓扑封装成一个虚拟的二层隧道。从 Pod 和 cni0 的视角来看，底层网络的复杂性被完全屏蔽，所有节点都如同直连在同一个交换机上，通信畅行无阻。
+要理解 Kubernetes 中的 VXLAN 网络模型，可从两个层面分析：
+
+- **从 Pod 与 cni0 的视角（应用层）**：VXLAN 的核心作用是**屏蔽底层物理网络的复杂性**。它通过封装技术构建出一个扁平化的虚拟二层网络（Overlay），让所有节点上的 Pod 都如同直连在同一个巨型交换机上，从而实现无缝的跨主机通信。
+
+- **从 VTEP 设备的视角（网络层）**：VXLAN 隧道端点（VTEP）的处理机制非常纯粹，它**只负责封装与解封装**。
+
+  - **封装**：将离开本机的报文封装成 VXLAN 格式。
+  - **解封装**：对收到的、VNI 匹配的外部报文进行解封装，然后交由内核处理。
+
+  VTEP 并不关心其承载的数据是来自 Pod 还是其他服务。因此，无论是 Pod 之间，还是主机 cni0 网桥之间，都可以利用这条隧道正常通信。
 
 ### 具体通信时候报文情况
 
@@ -364,13 +373,13 @@ host2:~# tcpdump -pne -i eth1
 17:28:27.281580 aa:c1:ab:fb:b2:32 > ff:ff:ff:ff:ff:ff, ethertype ARP (0x0806), length 42: Request who-has 10.0.2.2 tell 10.0.2.1, length 28
 17:28:27.281596 aa:c1:ab:3f:9e:a2 > aa:c1:ab:fb:b2:32, ethertype ARP (0x0806), length 42: Reply 10.0.2.2 is-at aa:c1:ab:3f:9e:a2, length 28
 
-# Vxlan 封装的广播请求。（实际上是单播）
+# VXLAN 封装的广播请求。（实际上是单播）
 17:28:27.281600 aa:c1:ab:fb:b2:32 > aa:c1:ab:3f:9e:a2, ethertype IPv4 (0x0800), length 92: 10.0.1.2.52326 > 10.0.2.2.4789: VXLAN, flags [I] (0x08), vni 1
 92:2a:0a:03:e0:d5 > ff:ff:ff:ff:ff:ff, ethertype ARP (0x0806), length 42: Request who-has 172.16.1.0 tell 172.16.0.0, length 28
 17:28:27.281646 aa:c1:ab:3f:9e:a2 > aa:c1:ab:fb:b2:32, ethertype IPv4 (0x0800), length 92: 10.0.2.2.52326 > 10.0.1.2.4789: VXLAN, flags [I] (0x08), vni 1
 da:9d:2a:11:e4:fc > 92:2a:0a:03:e0:d5, ethertype ARP (0x0806), length 42: Reply 172.16.1.0 is-at da:9d:2a:11:e4:fc, length 28
 
-# Vxlan 封装真正的 ICMP 报文。
+# VXLAN 封装真正的 ICMP 报文。
 17:28:27.281704 aa:c1:ab:fb:b2:32 > aa:c1:ab:3f:9e:a2, ethertype IPv4 (0x0800), length 148: 10.0.1.2.55235 > 10.0.2.2.4789: VXLAN, flags [I] (0x08), vni 1
 92:2a:0a:03:e0:d5 > da:9d:2a:11:e4:fc, ethertype IPv4 (0x0800), length 98: 172.16.0.2 > 172.16.1.2: ICMP echo request, id 226, seq 1, length 64
 17:28:27.281773 aa:c1:ab:3f:9e:a2 > aa:c1:ab:fb:b2:32, ethertype IPv4 (0x0800), length 148: 10.0.2.2.55235 > 10.0.1.2.4789: VXLAN, flags [I] (0x08), vni 1
@@ -401,21 +410,19 @@ listening on cni0, link-type EN10MB (Ethernet), snapshot length 262144 bytes
 01:47:51.114243 aa:c1:ab:a0:f0:76 > aa:c1:ab:00:3c:b9, ethertype IPv4 (0x0800), length 98: 172.16.1.2 > 172.16.0.2: ICMP echo reply, id 229, seq 1, length 64
 ```
 
-
-
 ​	本质上，VXLAN 凭借其“隧道”机制，实现了跨越三层网络的组网能力。只要承载“隧道”的物理主机之间 IP 可达，数据包在对端节点被解封装后，对于 Pod 而言，整个通信过程就如同在一个无缝的虚拟内网中进行，彻底屏蔽了底层物理网络的复杂性与边界。
 
-上面的架构是单播模式，Vxlan 支持组播模式，但是需要底层网络设备支持并配置组播。绝大多数生产环境（尤其是公有云）不会开启组播功能。 CNI 的设计目标是在任何网络上都能运行，要求用户去配置底层网络，这种强依赖性是不现实的。
+上面的架构是单播模式，VXLAN 支持组播模式，但是需要底层网络设备支持并配置组播。绝大多数生产环境（尤其是公有云）不会开启组播功能。 CNI 的设计目标是在任何网络上都能运行，要求用户去配置底层网络，这种强依赖性是不现实的。
 
 那么，Flannel 是如何绕开这个限制，实现一个普适性方案的呢？答案是：**它放弃了对网络功能的依赖，转而建立了一个更高级的“中央通知系统”。**
 
-Flannel 引入了一个轻量级的中央控制平面，这个角色由 `etcd` 充当。
+Flannel 引入了一个轻量级的中央控制平面：
 
-1. 每个节点上的 flanneld 进程启动后，会向 etcd 注册自己的信息，包括：本节点的 IP（VTEP IP）、分配到的Pod子网、以及flannel.1接口的MAC地址。
+1. 每个节点上的 flanneld 进程启动后，会向 etcd 注册自己的信息，包括：本节点的 IP（VTEP IP）、分配到的Pod 子网、以及 flannel.1 接口的 MAC 地址。
 
 2. 同时，每个 flanneld 进程也会监听（Watch）etcd 中所有其他节点注册的信息。
 
-3. 当 host1 上的 flanneld 从 etcd 中发现了 host2 的信息后，它会直接、动态地在 host1 上配置好到达 host2 所需的路由表和FDB转发表。
+3. 当 host1 上的 flanneld 从 etcd 中发现了 host2 的信息后，它会直接、动态地在 host1 上配置好到达 host2 所需的路由表和 FDB 转发表。
 
    它会自动执行类似如下的命令：
 
@@ -431,9 +438,7 @@ ip neigh add 172.16.1.0 lladdr <host2-flannel-MAC> dev flannel.1
 bridge fdb append <host2-flannel-MAC> dst <host2-IP> dev flannel.1
 ```
 
-
-
-除了 Flannel ，Cilium 在实现 Vxlan 的时候也是通过“控制平面”来在所有节点中配置规则。不过不同的是，Flannel 是使用的传统网络协议栈功能实现，而 Cilium 是通过 eBPF 来实现 Vxlan 的封装、解封装和路由。
+除了 Flannel ，Cilium 在实现 VXLAN 的时候也是通过“控制平面”来在所有节点中配置规则。不过不同的是，Flannel 是使用的传统网络协议栈功能实现，而 Cilium 是通过 eBPF 来实现 VXLAN 的封装、解封装和路由。
 
 总而言之，VXLAN 的核心就是“封装”技术。它通过构建一个覆盖在物理网络之上的虚拟“隧道”，彻底解决了 Host-GW 等方案无法跨越路由器的天生缺陷，让应用网络与物理网络彻底解耦。
 
@@ -630,4 +635,4 @@ IPIP（IP in IP）是一种直接的隧道封装技术，其核心优势在于�
 
 # 总结
 
-​	至此，Host-gw、Vxlan 和 IPIP 三种主流 CNI 数据平面模型的实践搭建已经完成。从基础的路由表配置到构建复杂的 Overlay 网络可以发现，CNI 数据平面的实现并非依赖特定技术，而是对 Linux 内核既有功能的组合与封装。对这些基础原理的理解，是清晰剖析各种成熟 CNI 插件的关键。掌握这些底层原理，是进行有效故障排查和制定可靠网络规划的前提。
+​	至此，Host-gw、VXLAN 和 IPIP 三种主流 CNI 数据平面模型的实践搭建已经完成。从基础的路由表配置到构建复杂的 Overlay 网络可以发现，CNI 数据平面的实现并非依赖特定技术，而是对 Linux 内核既有功能的组合与封装。对这些基础原理的理解，是清晰剖析各种成熟 CNI 插件的关键。掌握这些底层原理，是进行有效故障排查和制定可靠网络规划的前提。
