@@ -128,7 +128,7 @@ sudo clab deploy -t clab.yaml
 
 当 Pod1 想把一个报文发送给 Pod2 的时候（架构很简单，就不提及二层交换了。）：
 
-- 1. `pod1` (IP: `10.0.1.2`) 要找 `pod2` (IP: `10.0.2.2`)，发现其网段不同，所以`Pod1` 把报文发送给了网关 `cni0`。
+- 1. `pod1` (IP: `10.0.1.2`) 要找 `pod2` (IP: `10.0.2.2`)，发现其网段不同，所以`Pod1` 报文发送给了网关 `cni0`。
   2. 报文到达`cni0`后，`Host1`收到报文，由于开启了`net.ipv4.ip_forward`，所以`Host1`会根据路由表把报文转出去。
   3. 查看路由表后，`Host1`直接将报文转发给了`Host2`，整个过程源 IP 依旧是 `Pod1 IP`，目标 IP 依旧是 `Pod2IP`，因为`Host1`上路由`ip route add 10.0.2.0/24 via 192.168.2.100` 指明了对应报文应该送给`Host2`。
   4. 报文到达`Host2`之后，发现有一条路由把`Host`的目标指向了`cni0`（命令`ip addr add 10.0.2.1/24 dev cni0`会默认增加一个 `route 10.0.2.0/24 dev cni0`的路由），所以就把报文通过`cni0`转给了`Pod2`。
@@ -320,6 +320,12 @@ EOF
 sudo clab deploy -t clab.yaml
 ```
 
+>- 模拟外部网络/公网网段: 192.168.0.100/16
+>- 模拟跨机房网段:
+>  - 10.0.0.0/24
+>  - 10.0.1.0/24
+>- Pod 网段: 172.16.0.0/16
+
 架构图：
 
 ![image-20250609001958881](https://hihihiai.com/images/containerlab-cni/image-20250609001958881.png)
@@ -332,11 +338,28 @@ sudo clab deploy -t clab.yaml
 2. **路由指向隧道** `Host1` 内核查询路由表，发现一条规则（`ip route add 172.16.1.0/24 ... dev flannel.1`），指示它：要想到达 `Pod2` 所在的网络，必须通过 `flannel.1` 这个虚拟隧道设备。
 3. **触发“问路”（ARP 请求）** 有网关，有出口设备 (`flannel.1`)，所以内核生成了一个 ARP 广播请求：“谁能告诉我 `172.16.1.0` 这个网关的 MAC 地址？”
 4. **广播的“定向封装”** 这个 ARP 广播请求被发往 `flannel.1` 设备。此时，一个**预设的关键规则** (`bridge fdb append to 00:00:00:00:00:00 dst 10.0.2.2 dev flannel.1`) 发挥了作用，它告诉 `flannel.1` 设备：“所有广播帧，都不要在本地泛洪，而是将它封装成一个单播 UDP 包，发往 `Host2`（`10.0.2.2`）”。
-5. **远端响应** `Host2` 收到 UDP 包，解封装后得到内部的 ARP 请求。`Host2` 的内核一看，这个请求查询的 `172.16.1.0` 正是自己 `flannel.1` 接口的 IP，于是立刻用自己 `flannel.1` 的 MAC 地址进行了应答。
+5. **远端响应** `Host2` 收到 VXLAN 包，解封装后得到内部的 ARP 请求。`Host2` 的内核一看，这个请求查询的 `172.16.1.1` 正是自己 `cni0` 接口的 IP，于是立刻用自己 `flannel.1` 的 MAC 地址进行了应答。
 6. **学习路径并转发** `Host1` 收到 `Host2` 发回的 ARP 应答。
-7. **正式通信** `Host1` 将原始的 ICMP 包（源: `Pod1`, 目标: `Pod2`），使用刚刚学到的 `Host2` 的 MAC 地址进行二层封装，然后将这整个帧再次通过 `flannel.1` 设备进行 VXLAN 封装(`IP -> UDP -> VXLAN -> IP`)，再通过正常网络发往 `Host2`。
-8. **最终送达** `Host2` 解封装后，将原始 ICMP 包通过本地的 `cni0` 网桥转发给 `Pod2`，通信成功。
+7. **正式通信**:
+   1.  `Host1` 将原始的 ICMP 包（源: `Pod1`, 目标: `Pod2`），使用刚刚学到的 `Host2` 的 MAC 地址进行二层封装，然后将这整个帧再次通过 `flannel.1` 设备进行 VXLAN 封装(`IP -> UDP -> VXLAN -> IP`)，再通过正常网络发往 `Host2`。
+   2. 封装包情况:
+      - 外层 MAC（一直变动）: 
+        - 源 Mac: Host1 eth1 MAC
+        - 目标 MAC: Host1 去 Host2 下一跳网关 MAC
+      - 外层 IP：
+        - 源 IP: 10.0.1.2 (Host1's VTEP IP)
+        - 目标 IP: 10.0.2.2 (Host2's VTEP IP)
+      - UDP 封装: 
+        - 源 Port: 随机
+        - 目标 Port: 4789
+      - VXLAN 封装, VNI: 1
+      - 原始数据（Pod 发出，Host1 上封装）
+        - Mac层: Src MAC: Host1 cni0 MAC, Dst: Host2 cni0 MAC
+        - IP 层：Src IP: Pod1 IP, Dst: Pod2 IP
+        - **数据**: 应用层数据报文
+   3. ![image-20250610202050818](https://hihihiai.com/images/containerlab-cni/Snipaste_2025-06-10_20-22-02.png)
 
+8. **最终送达** `Host2` 解封装后，将原始 ICMP 包通过本地的 `cni0` 网桥转发给 `Pod2`，通信成功。
 9. Pod2 返回： 相同路径返回报文即可。
 
 **为了更形象地理解这个过程，我们可以把它想象成一次“驾车乘船”的跨河旅行。**
@@ -386,8 +409,6 @@ da:9d:2a:11:e4:fc > 92:2a:0a:03:e0:d5, ethertype ARP (0x0806), length 42: Reply 
 17:28:27.281773 aa:c1:ab:3f:9e:a2 > aa:c1:ab:fb:b2:32, ethertype IPv4 (0x0800), length 148: 10.0.2.2.55235 > 10.0.1.2.4789: VXLAN, flags [I] (0x08), vni 1
 da:9d:2a:11:e4:fc > 92:2a:0a:03:e0:d5, ethertype IPv4 (0x0800), length 98: 172.16.1.2 > 172.16.0.2: ICMP echo reply, id 226, seq 1, length 64
 ```
-
-报文的封装形式为： `IP -> UDP -> VXLAN -> IP`
 
 host2 cni0 抓包情况：
 ```shell
