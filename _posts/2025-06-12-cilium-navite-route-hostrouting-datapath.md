@@ -10,7 +10,7 @@ tags:
   - Kubernetes
 ---
 
-​	随着云原生技术的发展，以 eBPF 为核心的 Cilium 已成为性能最强的容器网络方案之一，它显著提升了网络性能与可观测性。然而，其强大的能力也带来了数据路径的复杂性，尤其是在原生路由（Native Routing）模式下。当生产环境出现网络问题时，理解其内部工作原理对于故障排查至关重要。因此，本文旨在详细剖析 Cilium 原生路由模式的 eBPF 数据路径，阐明其报文转发流程，为生产实践提供参考。
+​	随着云原生技术的发展，以 eBPF 为核心的 Cilium 已成为性能最强的容器网络方案之一，它显著提升了网络性能与可观测性。然而，其强大的能力也带来了数据路径的复杂性。当生产环境出现网络问题时，理解其内部工作原理对于故障排查至关重要。因此，本文旨在详细剖析 Cilium 原生路由模式的 eBPF 数据路径，阐明其报文转发流程，为生产实践提供参考。
 
 
 
@@ -22,7 +22,7 @@ tags:
 
 ## 2. Cilium 场景下，eBPF 运行在哪些地方
 
-![image-20250612210738544](https://hihihiai.com/images/containerlab-cni/image-20250612210738544.png)
+![image-cilium-navite-route-hostrouting-datapath](https://hihihiai.com/images/containerlab-cni/image-cilium-navite-route-hostrouting-datapath.png)
 
 上面是一个简化  Linux 网络路径图，上面绿色部分，就是 Cilium 会挂载 eBPF 的挂载点。
 
