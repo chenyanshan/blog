@@ -22,7 +22,7 @@ tags:
 
 ## 2. Cilium 场景下，eBPF 运行在哪些地方
 
-![image-cilium-navite-route-hostrouting-datapath](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/20250612210738544.png)
+![image-cilium-navite-route-hostrouting-datapath](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/image-20250612210738544.png)
 
 上面是一个简化  Linux 网络路径图，上面绿色部分，就是 Cilium 会挂载 eBPF 的挂载点。
 
