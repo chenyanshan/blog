@@ -22,7 +22,7 @@ tags:
 
 ## 2. Cilium 场景下，eBPF 运行在哪些地方
 
-![image-cilium-navite-route-hostrouting-datapath](https://hihihiai.com/images/containerlab-cni/image-cilium-navite-route-hostrouting-datapath.png)
+![image-cilium-navite-route-hostrouting-datapath](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/20250612210738544.png)
 
 上面是一个简化  Linux 网络路径图，上面绿色部分，就是 Cilium 会挂载 eBPF 的挂载点。
 
@@ -86,13 +86,13 @@ TC Egress 的返回值与 TC Ingress 完全相同，其主要含义为：
 
 ​	在传统的 HostGW 模式中，或者其他没有开启 eBPF 特性的 Cilium Native Routing 模式中，流量从外部进入 Pod，或者 Pod 从内部把流量发出去，都会需要经过两层网络协议栈，一层是宿主机的，一层是 Pod 自身的。
 
-![image-20250614122427839](https://hihihiai.com/images/containerlab-cni/image-20250614122427839.png)
+![image-20250614122427839](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/image-20250614122427839.png)
 
 ​	如果上图所示，流量从外部进入后，会先进入宿主机的 Netfilter 框架，然后由内核 Routing 后，转给 cni0 网桥，或者 pod 的 veth-pair 网卡，最后到达 Pod，Pod 再自身还会经过自己的网络协议栈。这样就造成了资源的浪费，因为在报文的转发流程上，Netfilter 是非常消耗资源的。
 
 ### Cilium 利用 eBPF 做了什么路径优化呢？
 
-![image-20250614123007383](https://hihihiai.com/images/containerlab-cni/image-20250614123007383.png)
+![image-20250614123007383](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/image-20250614123007383.png)
 
 如上图所示：
 
@@ -103,7 +103,7 @@ TC Egress 的返回值与 TC Ingress 完全相同，其主要含义为：
 
 ### 报文是如何被 eBPF 程序接管的？
 
-![image-20250615130952970](https://hihihiai.com/images/containerlab-cni/image-20250615130952970.png)
+![image-20250615130952970](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/image-20250615130952970.png)
 
 上面中 Cilium 实现跳过宿主机的 Netfilter ，核心是利用了图片上的两个 eBPF 程序。
 
@@ -142,17 +142,17 @@ TC Egress 的返回值与 TC Ingress 完全相同，其主要含义为：
 
 ### 1. Pod 出宿主机
 
-![image-20250615131649371](https://hihihiai.com/images/containerlab-cni/image-20250615131649371.png)
+![image-20250615131649371](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/image-20250615131649371.png)
 
 所有 Pod 出流量都会通过 Pod 所在 veth-paic 宿主机测挂载的 TC Ingress Hook 上的 `from_container` 接管并处理。如果是发往其他宿主机的流量，将会通过 `bpf_redirect_neigh()`函数，查询宿主机的路由表信息。最终将报文通过物理网卡转出，其中有关于 SNAT 相关工作，会通过`eth0`上面的 `TC Ingress to_netdev`完成。
 
 简化后方便理解的网络流转图：
 
-![image-20250615132413083](https://hihihiai.com/images/containerlab-cni/image-20250615132413083.png)
+![image-20250615132413083](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/image-20250615132413083.png)
 
 ## 2. 外部流量进入 Pod
 
-![image-20250615133100097](https://hihihiai.com/images/containerlab-cni/image-20250615133100097.png)
+![image-20250615133100097](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/image-20250615133100097.png)
 
 而外部流量进入 Pod，会通过宿主机网卡`TC Ingress Hook`上面挂载的`from_netdev`进行处理，在这里实现连接追踪等功能。如果是 Pod 的报文，会通过指定`endpoint`信息，尾调对应 Pod 的 `cil_lxc_policy`函数。将所有逻辑都交由`cil_lxc_policy`处理。
 
@@ -160,33 +160,33 @@ TC Egress 的返回值与 TC Ingress 完全相同，其主要含义为：
 
 简化后方便理解的网络流转图：
 
-![image-20250615132427613](https://hihihiai.com/images/containerlab-cni/image-20250615132427613.png)
+![image-20250615132427613](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/image-20250615132427613.png)
 
 ## 3. 同宿主机 Pod 与 Pod 通信
 
-![image-20250615131444329](https://hihihiai.com/images/containerlab-cni/image-20250615131444329.png)
+![image-20250615131444329](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/image-20250615131444329.png)
 
 同宿主机 Pod 通信的时候，报文会还是会先被当前 Pod 的 veth-pair 网卡上面的`from_container`处理，然后会直接转给对端 Pod 的`cil_lxc_policy`，最后经过策略判断后，调用 `bpf_redirect_peer()`进入目标 Pod 内部。
 
 简化后方便理解的网络流转图：
 
-![image-20250615132449419](https://hihihiai.com/images/containerlab-cni/image-20250615132449419.png)
+![image-20250615132449419](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/image-20250615132449419.png)
 
 ## 4. Pod 与 Pod 跨宿主机通信
 
-![image-20250615131844036](https://hihihiai.com/images/containerlab-cni/image-20250615131844036.png)
+![image-20250615131844036](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/image-20250615131844036.png)
 
 Pod 跨通信的时候，其实就是 Pod 出入宿主机通信的组合，Pod 先通过`bpf_redirect_neigh()`跳过本机 Netfilter ，然后从 eth0 转出去，最终在到达对端宿主机后，被`bpf_redirect_peer()`直接转给目标 Pod 。
 
 简化后方便理解的网络流转图：
 
-![image-20250615132500429](https://hihihiai.com/images/containerlab-cni/image-20250615132500429.png)
+![image-20250615132500429](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/image-20250615132500429.png)
 
 # 四、性能提升情况
 
 根据`isovalent`的给出的测试数据：
 
-![image-20250615135157407](https://hihihiai.com/images/containerlab-cni/image-20250615135157407.png)
+![image-20250615135157407](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/image-20250615135157407.png)
 
 - veth + upper stack forwarding: 传统方案，通过内核网络协议栈和 Netfilter 进行路由和报文转发。
 - veth + BPF host routing: 使用 eBPF 跳过 Netfilter，文中所使用的模式。
@@ -196,13 +196,13 @@ Pod 跨通信的时候，其实就是 Pod 出入宿主机通信的组合，Pod �
 
 当然，`isovalent` 毕竟是 `Cilium`的商业化公司，不能尽信，真想要获取`Cilium`的性能提升，还是要自己对其进行详尽的性能测试。
 
-### 题外话1： 这里为什么会特意标注 veth 呢？veth-pair 不是容器网络构建的标准方案吗？为什么还需要写出来呢？
+#### 题外话1： **这里为什么会特意标注 veth 呢？veth-pair 不是容器网络构建的标准方案吗？为什么还需要写出来呢？**
 
 其实又出了一个新东西，在`Cilium`的支持下，能把性能提升至和宿主机几乎同一个层次，不过版本要求较高，对于`Cilium`本身，`1.16`就开始支持了，但是对于 Linux 内核来说，要 `Linux Kernel 6.7` 版本才支持。
 
 这个东西叫`netkit`，给的数据说比`veth-pair`提升了 12% 的性能。也是非常恐怖的性能提升。
 
-### 题外话2: 其实 HostNetwork 也是一种很好的方式。
+#### 题外话2: **其实 HostNetwork 也是一种很好的方式。**
 
 如果现在使用的 Flannel 或者 Calico，在完全不动网络架构的情况下，不管是 Pod 网络是 Overlay 还是Underlay，都可以直接将超高网络需求的 workload 设置为 HostNetwork 模式，不要以为这种方式不优雅，不少大厂都这么干，简单直接的性能提升方式。（当然，用之前先规划清楚是否有安全方面或者端口方面、以及服务注册方面的内容需要注意。）
 
