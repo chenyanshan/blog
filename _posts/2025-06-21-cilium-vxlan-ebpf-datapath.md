@@ -24,7 +24,7 @@ tags:
 
 # 一、VXLAN 模式下所使用到的 TC HOOK
 
-![image-20250621175209206](https://hihihiai.com/cilium-vxlan-ebpf-datapath/image-20250621175209206.png)
+![image-20250621175209206](https://hihihiai.com/images/cilium-vxlan-ebpf-datapath/image-20250621175209206.png)
 
 除了 `cilium_vxlan` 设备上的两个 TC Hook，其他 TC Hook 都在前文中有过介绍，这里就不再赘述。
 
@@ -57,7 +57,7 @@ tags:
 
 
 
-![image-20250621183957329](https://hihihiai.com/cilium-vxlan-ebpf-datapath/image-20250621183957329.png)
+![image-20250621183957329](https://hihihiai.com/images/cilium-vxlan-ebpf-datapath/image-20250621183957329.png)
 
 首先，当报文离开 Pod 后，会立即由其所在宿主机上的 veth-pair 网卡进行处理，具体由 `from_container` 这个 eBPF 程序接管。
 
@@ -77,7 +77,7 @@ tags:
 
 简化后方便理解的网络流转图：
 
-![image-20250621220102895](https://hihihiai.com/cilium-vxlan-ebpf-datapath/image-20250621220102895.png)
+![image-20250621220102895](https://hihihiai.com/images/cilium-vxlan-ebpf-datapath/image-20250621220102895.png)
 
 
 
@@ -85,7 +85,7 @@ tags:
 
 
 
-![image-20250621184007676](https://hihihiai.com/cilium-vxlan-ebpf-datapath/image-20250621184007676.png)
+![image-20250621184007676](https://hihihiai.com/images/cilium-vxlan-ebpf-datapath/image-20250621184007676.png)
 
 当一个外部 VXLAN 报文（即一个目标为宿主机的 UDP 报文）抵达 `eth0` 网卡时，将首先由挂载在其 TC Ingress Hook 上的 `from_netdev` eBPF 程序进行处理。该程序主要负责检查主机防火墙是否存在限制，确认无误后，便将报文放行至内核网络协议栈。
 
@@ -97,7 +97,7 @@ tags:
 
 简化后方便理解的网络流转图：
 
-![image-20250621220133163](https://hihihiai.com/cilium-vxlan-ebpf-datapath/image-20250621220133163.png)
+![image-20250621220133163](https://hihihiai.com/images/cilium-vxlan-ebpf-datapath/image-20250621220133163.png)
 
 至此，整个 Cilium VXLAN 模式下的 eBPF 数据路径已经梳理完了。
 
