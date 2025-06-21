@@ -4,8 +4,8 @@ highlighter:      rouge
 
 # Setup
 title:            Hi AI!
-tagline:          '燕山的技术分享站'
-description:      '深入云原生架构，提升大变局下竞争力，拥抱 AI ，拥抱未来。'
+tagline:          '燕山的博客'
+description:      '深入探索云原生架构，拥抱 AI ，拥抱未来！'
 url:              https://hihihiai.com
 baseurl:          '/'
                   # the optional subpath of your site, e.g. "/blog"
