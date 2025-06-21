@@ -88,7 +88,7 @@ TC Egress 的返回值与 TC Ingress 完全相同，其主要含义为：
 
 ![image-20250614122427839](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/image-20250614122427839.png)
 
-​	如果上图所示，流量从外部进入后，会先进入宿主机的 Netfilter 框架，然后由内核 Routing 后，转给 cni0 网桥，或者 pod 的 veth-pair 网卡，最后到达 Pod，Pod 再自身还会经过自己的网络协议栈。这样就造成了资源的浪费，因为在报文的转发流程上，Netfilter 是非常消耗资源的。
+​	如果上图所示，流量从外部进入后，会先进入宿主机的 Netfilter 框架，然后由内核根据路由表，转给 cni0 网桥，或者 pod 的 veth-pair 网卡，最后到达 Pod，Pod 再自身还会经过自己的网络协议栈。这样就造成了资源的浪费，因为在报文的转发流程上，Netfilter 是非常消耗资源的。
 
 ### Cilium 利用 eBPF 做了什么路径优化呢？
 
@@ -166,7 +166,9 @@ TC Egress 的返回值与 TC Ingress 完全相同，其主要含义为：
 
 ![image-20250615131444329](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/image-20250615131444329.png)
 
-同宿主机 Pod 通信的时候，报文会还是会先被当前 Pod 的 veth-pair 网卡上面的`from_container`处理，然后会直接转给对端 Pod 的`cil_lxc_policy`，最后经过策略判断后，调用 `bpf_redirect_peer()`进入目标 Pod 内部。
+当报文离开 Pod 后，会立即由其所在宿主机上的 veth-pair 网卡进行处理，具体由 `from_container` 这个 eBPF 程序接管。
+
+判断如果是同宿主机 Pod ，会通过尾调调用 `ipv4_local_delivery` 函数，而 `ipv4_local_delivery` 就负责同宿主机 Pod 报文的投递，`ipv4_local_delivery` 后续会通过尾调调用目标 Pod 的 `cil_lxc_policy` 的 eBPF 程序，目标 Pod 的 `cil_lxc_policy` 经过策略判断后是否放行后，会调用 `bpf_redirect_peer()` 将报文转发到目标 Pod 内部 veth 网卡。
 
 简化后方便理解的网络流转图：
 

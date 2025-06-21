@@ -47,7 +47,9 @@ tags:
 
 ![image-20250615131444329](https://hihihiai.com/images/cilium-navite-route-hostrouting-datapath/image-20250615131444329.png)
 
-同宿主机 Pod 通信的时候，报文会还是会先被当前 Pod 对应的宿主机侧的 veth-pair 网卡上面的`from_container`处理。判断如果是同宿主机 Pod ，会通过尾调调用`ipv4_local_delivery`函数，而`ipv4_local_delivery`就负责同宿主机 Pod 报文的投递，`ipv4_local_delivery`后续会通过尾调调用目标 Pod 的`cil_lxc_policy`的 eBPF 程序，目标 Pod 的`cil_lxc_policy`经过策略判断后是否放行后，会调用 `bpf_redirect_peer()`将报文转发到目标 Pod 内部 veth 网卡。
+当报文离开 Pod 后，会立即由其所在宿主机上的 veth-pair 网卡`TC Ingress Hook` 处挂载的 `from_container` 序接管。
+
+判断如果是同宿主机 Pod ，会通过尾调调用 `ipv4_local_delivery` 函数，而 `ipv4_local_delivery` 就负责同宿主机 Pod 报文的投递，`ipv4_local_delivery` 后续会通过尾调调用目标 Pod 的 `cil_lxc_policy` 的 eBPF 程序，目标 Pod 的 `cil_lxc_policy` 经过策略判断后是否放行后，会调用 `bpf_redirect_peer()` 将报文转发到目标 Pod 内部 veth 网卡。
 
 简化后方便理解的网络流转图：
 
@@ -59,7 +61,7 @@ tags:
 
 ![image-20250621183957329](https://hihihiai.com/images/cilium-vxlan-ebpf-datapath/image-20250621183957329.png)
 
-首先，当报文离开 Pod 后，会立即由其所在宿主机上的 veth-pair 网卡进行处理，具体由 `from_container` 这个 eBPF 程序接管。
+和上面一样，当报文离开 Pod 后，会立即由其所在宿主机上的 veth-pair 网卡`TC Ingress Hook` 处挂载的 `from_container` 序接管。
 
 `from_container` 程序会依据目标地址，检查网络策略是否允许该通信。若策略允许，在 VXLAN 模式下，程序会调用 `encap_and_redirect_lxc` 函数，为报文附加隧道元数据（包括远程 VTEP IP 和 VXLAN VNI），并通过 `bpf_redirect()` 函数将报文重定向至 `cilium_vxlan` 网卡。
 
