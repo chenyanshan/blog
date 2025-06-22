@@ -91,7 +91,7 @@ Cilium 利用 eBPF 技术优化 Pod 间流量路径，旨在绕过内核中效�
 
 所以 Socket-LB 特性对于不使用 eBPF 的 CNI 来说可能并无特别大的作用，但是在 Cilium 中，却是性能提升的核心特性（Calico 中也有类似实现方案）。
 
-# 2. 宿主机名称空间的 Service 转 Pod IP 特性
+### 2. 宿主机名称空间的 Service 转 Pod IP 特性
 
 ​	有的时候 Pod 内部会依赖 Service 做一些自定义操作，例如 Istio Sidecar 模式，其 envoy-proxy sidecar ，Listener  监听就是 Service IP ，如果 Cilium 在业务 Pod 访问的时候把 Service IP 替换成了 Pod IP ，那么 Istio 就无法劫持和管理访问 Service 的流量。
 
