@@ -1,7 +1,7 @@
 ---
 layout: page
-title:  "一个简单的 AIOps 的落地实现"
-date:  2025-05-10 09:14:07
+title:  "AIOps 生产落地实践：用 AI 提升告警质量与 K8S 运维效率"
+date:  2100-05-10 09:14:07
 categories: AIOps
 tags:
   - AIOps
