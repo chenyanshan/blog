@@ -35,3 +35,5 @@ sidebar_home_link:  true
                                 # to enable a separate blog link.
 
 timezone: Asia/Shanghai
+
+future: true
