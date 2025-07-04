@@ -1,6 +1,6 @@
 ---
 layout: page
-title: "BGP 控制平面解析 - 借助 ContainerLab 将 Kind 集群接入多 AS 环境"
+title: "Cilium: 构建跨 BGP AS 域的 Kubernetes 集群网络"
 date: 2025-07-02 10:14:07
 categories: Cilium
 tags:
@@ -8,19 +8,21 @@ tags:
   - Cilium
   - 云原生
   - Kubernetes
+
 ---
 
 ​	尽管 Cilium 以其基于 eBPF 的高性能 CNI 著称，但其能力远不止于集群内部。Cilium 原生的 BGP 功能，让 Kubernetes 集群能真正地参与到外部网络的路由决策中，这在很多混合云或本地数据中心的场景下，是个非常优雅的解决方案。利用 BGP 宣告集群的 Pod CIDR，构建一个无覆盖网络（No-Overlay）的高性能环境。这种模式下，Pod IP 可在外部网络直接路由，彻底消除了封装开销。本文将通过 ContainerLab 和 Kind 搭建实验，演示如何配置 Cilium 与外部路由器对接，从而将 Pod 网段宣告给物理网络。
 
 ## 一、实验架构
 
-![image-20250703202337340](https://hihihiai.com/images/cilium-bgpControlPlane/image-20250703202337340.png)
+![image-20250703210814526](https://hihihiai.com/images/cilium-bgpControlPlane/image-20250703210814526.png)
 
 架构情况如下：
 
 - **K8s 集群**: 集群本身由 **Kind** 创建和管理，每个 `Worker` 节点都是一个独立的容器。
 - **网络骨架**: 使用 **ContainerLab** 搭建一个经典的“核心-接入 (Spine-Leaf)”网络拓扑。图中的 `spine` 和 `leaf` 路由器均为由 VyOS 等镜像实例化的容器，并配置了各自的 AS 域和 BGP 对等关系。
 - **连接与集成**: **ContainerLab** 在启动 Kind 节点后，会修改其网络配置，将其接入到预设的 Linux 网桥中，实现与 `leaf` 交换机的连接。这个过程使得我们可以为 Kubernetes 节点自定义 IP 地址（如 `10.0.5.11/24`），让它能够与 BGP 网络中的其他设备直接通信。
+- **Client**: 演示整个网络中其它客户端或者非 K8S 环境的 Server 。
 
 ## 二、Vyos 组件
 
@@ -68,7 +70,7 @@ kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 networking:
   disableDefaultCNI: true
-  #kubeProxyMode: "none"
+  kubeProxyMode: "none"
   podSubnet: "10.1.0.0/16"
   serviceSubnet: "10.96.0.0/12"
 nodes:
@@ -80,6 +82,12 @@ nodes:
         kubeletExtraArgs:
           node-ip: 10.0.5.11
           node-labels: "rack=rack0"
+    - |
+      kind: ClusterConfiguration
+      apiServer:
+        certSANs:
+        - "10.0.5.11"
+        - "127.0.0.1"
   - role: worker
     kubeadmConfigPatches:
       - |
@@ -105,6 +113,7 @@ nodes:
             node-ip: 10.0.10.12
             node-labels: "rack=rack1"
 EOF
+
 ```
 
 这里使用 Kind 建立了最底层的 Worker 节点。
@@ -202,6 +211,14 @@ topology:
         - ip addr add 10.0.10.12/24 dev net0
         - ip route replace default via 10.0.10.1
 
+    client:
+      kind: linux
+      image: nicolaka/netshoot
+      exec:
+        - ip addr add 192.168.0.2/24 dev net0
+        - ip route replace default via 192.168.0.1
+
+
   links:
    - endpoints: [control-plane:net0, leaf01-br:leaf01-br-eth1]
    - endpoints: [worker:net0, leaf01-br:leaf01-br-eth2]
@@ -215,6 +232,8 @@ topology:
    - endpoints: [leaf02:eth2, spine02:eth1]
    - endpoints: [leaf02:eth3, spine01:eth2]
    - endpoints: [leaf02:eth1, leaf02-br:leaf02-br-eth3]
+
+   - endpoints: [client:net0, spine02:eth3]
 EOF
 
 sudo clab deploy -t clab.yaml
@@ -227,7 +246,7 @@ sudo clab deploy -t clab.yaml
 
 这样，就把基础骨架构建好了。
 
-![image-20250703203230027](https://hihihiai.com/images/cilium-bgpControlPlane/image-20250703203230027.png)
+![image-20250703211111318](https://hihihiai.com/images/cilium-bgpControlPlane/image-20250703211111318.png)
 
 ### 5.1 网络配置：
 
@@ -282,6 +301,7 @@ set protocols bgp neighbor 10.0.104.2 address-family ipv4-unicast
 ####### 配置基础 IP 信息
 set interfaces ethernet eth1 address 10.0.102.1/24
 set interfaces ethernet eth2 address 10.0.103.1/24
+set interfaces ethernet eth3 address 192.168.0.1/24
 set interfaces loopback lo
 
 ####### 配置自己的 BPG AS 号和 Router-ID 号
@@ -301,6 +321,9 @@ set protocols bgp neighbor 10.0.103.2 remote-as 65005
 set protocols bgp neighbor 10.0.103.2 address-family ipv4-unicast
 # 查看邻居状态
 # run show ip bgp neighbors 10.0.103.2
+
+# 通告自己的网络
+set protocols bgp address-family ipv4-unicast network 192.168.0.0/24
 ```
 
 ### leaf01 配置命令
@@ -364,7 +387,7 @@ set nat source rule 10 description 'Do NOT NAT traffic to private networks'
 set nat source rule 10 destination address '10.0.0.0/8'
 # 关键命令：'exclude' 告诉系统，如果匹配这条规则，就直接跳过后续的NAT处理
 set nat source rule 10 exclude
-
+# 给 K8S 节点用，让其能够拉取镜像之类。
 set nat source rule 100 outbound-interface 'eth0'
 set nat source rule 100 source address '10.0.5.0/24'
 set nat source rule 100 translation address 'masquerade'
@@ -433,7 +456,7 @@ set nat source rule 100 translation address 'masquerade'
 
 至此，整个网络和 K8S 集群构建完成。
 
-![image-20250703202337340](https://hihihiai.com/images/cilium-bgpControlPlane/image-20250703202337340.png)
+![image-20250703211424774](https://hihihiai.com/images/cilium-bgpControlPlane/image-20250703211424774.png)
 
 ### 5.2 扩展内容
 
@@ -536,12 +559,16 @@ API_SERVER_PORT=6443
 # 安装 cilium cni
 # --set bgpControlPlane.enabled=true 启用 BPG 策略。
 # --set autoDirectNodeRoutes=true 如果你的所有 Kubernetes 节点都连接在同一个交换机上（或者在同一个VLAN里，可以相互直接通信而无需经过路由器），那么就打开这个功能。
+# --set kubeProxyReplacement=true --set loadBalancer.mode=dsr Cilium 替代 Kube-Proxy
+# --set l2announcements.enabled=true --set externalIPs.enabled=true beta 功能，L2 层宣告 LB IP
 helm install cilium cilium/cilium --version 1.17.4 --namespace kube-system --set operator.replicas=1 \
   --set routingMode=native --set ipv4NativeRoutingCIDR="10.1.0.0/16" \
   --set debug.enabled=true --set debug.verbose=datapath --set monitorAggregation=none \
   --set ipam.mode=kubernetes \
   --set k8sServiceHost=${API_SERVER_IP} --set k8sServicePort=${API_SERVER_PORT} \
-  --set bgpControlPlane.enabled=true
+  --set kubeProxyReplacement=true --set loadBalancer.mode=dsr \
+  --set bgpControlPlane.enabled=true \
+  --set l2announcements.enabled=true --set externalIPs.enabled=true
 
 # wait all pods ready
 kubectl wait --timeout=100s --for=condition=Ready=true pods --all -A
@@ -552,7 +579,7 @@ kubectl -nkube-system exec -it ds/cilium -- cilium status
 kubectl get crds | grep ciliumbgppeeringpolicies.cilium.io
 ```
 
-# 七、测试
+# 七、Pod 网络情况测试
 
 测试配置：
 
@@ -581,7 +608,7 @@ spec:
 EOF
 ```
 
-测试：
+Pod 间互通测试：
 
 ```bash
 root@server:~# kubectl get pods -o wide
@@ -669,20 +696,7 @@ EOF
 查看路由情况：
 
 ```bash
-root@spine01:/# route -n
-Kernel IP routing table
-Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
-0.0.0.0         172.16.100.1    0.0.0.0         UG    0      0        0 eth0
-10.0.5.0        10.0.101.2      255.255.255.0   UG    20     0        0 eth1
-10.0.10.0       10.0.104.2      255.255.255.0   UG    20     0        0 eth2
-10.0.101.0      0.0.0.0         255.255.255.0   U     0      0        0 eth1
-10.0.104.0      0.0.0.0         255.255.255.0   U     0      0        0 eth2
-10.1.0.0        10.0.101.2      255.255.255.0   UG    20     0        0 eth1
-10.1.1.0        10.0.104.2      255.255.255.0   UG    20     0        0 eth2
-10.1.2.0        10.0.104.2      255.255.255.0   UG    20     0        0 eth2
-10.1.3.0        10.0.101.2      255.255.255.0   UG    20     0        0 eth1
-172.16.100.0    0.0.0.0         255.255.255.0   U     0      0        0 et
-root@leaf01:/# route -n
+root@server:~/bgp-control-plane# docker exec -it clab-cilium-bgp-leaf01 route -n
 Kernel IP routing table
 Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 0.0.0.0         172.16.100.1    0.0.0.0         UG    0      0        0 eth0
@@ -695,6 +709,21 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 10.1.2.0        10.0.101.1      255.255.255.0   UG    20     0        0 eth2
 10.1.3.0        10.0.5.12       255.255.255.0   UG    20     0        0 eth1
 172.16.100.0    0.0.0.0         255.255.255.0   U     0      0        0 eth0
+192.168.0.0     10.0.103.1      255.255.255.0   UG    20     0        0 eth3
+root@server:~/bgp-control-plane# docker exec -it clab-cilium-bgp-spine01 route -n
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
+0.0.0.0         172.16.100.1    0.0.0.0         UG    0      0        0 eth0
+10.0.5.0        10.0.101.2      255.255.255.0   UG    20     0        0 eth1
+10.0.10.0       10.0.104.2      255.255.255.0   UG    20     0        0 eth2
+10.0.101.0      0.0.0.0         255.255.255.0   U     0      0        0 eth1
+10.0.104.0      0.0.0.0         255.255.255.0   U     0      0        0 eth2
+10.1.0.0        10.0.101.2      255.255.255.0   UG    20     0        0 eth1
+10.1.1.0        10.0.104.2      255.255.255.0   UG    20     0        0 eth2
+10.1.2.0        10.0.104.2      255.255.255.0   UG    20     0        0 eth2
+10.1.3.0        10.0.101.2      255.255.255.0   UG    20     0        0 eth1
+172.16.100.0    0.0.0.0         255.255.255.0   U     0      0        0 eth0
+192.168.0.0     10.0.101.2      255.255.255.0   UG    20     0        0 eth1
 ```
 
 从路由情况来看，Pod 网段都已经被通告了出来。
@@ -710,6 +739,8 @@ Local AS   Peer AS   Peer Address   Session       Uptime   Family         Receiv
 ```
 
 测试：
+
+跨 AS 网络宿主机上面的 Pod 已经能够正常通信。
 
 ```bash
 root@server:~# kubectl exec -it test-client-6h296 -- /bin/bash
@@ -729,7 +760,31 @@ PING 10.128.1.5 (10.128.1.5) 56(84) bytes of data.
 rtt min/avg/max/mdev = 0.413/0.413/0.413/0.000 ms
 ```
 
-跨 AS 网络宿主机上面的 Pod 已经能够正常通信。
+Pod 内能正常 Ping 通网络中的机器：
+
+```
+root@server:~/bgp-control-plane# kubectl exec -it test-client-gwmdh -- ping -c 1  192.168.0.2
+PING 192.168.0.2 (192.168.0.2) 56(84) bytes of data.
+64 bytes from 192.168.0.2: icmp_seq=1 ttl=60 time=0.316 ms
+
+--- 192.168.0.2 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.316/0.316/0.316/0.000 ms
+```
+
+Client 侧 ping Pod 也能正常 Ping 通：
+
+```
+client:~# ping -c 1 10.1.0.174
+PING 10.1.0.174 (10.1.0.174) 56(84) bytes of data.
+64 bytes from 10.1.0.174: icmp_seq=1 ttl=60 time=0.270 ms
+
+--- 10.1.0.174 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 0.270/0.270/0.270/0.000 ms
+```
+
+在此架构下， Pod CIDR 已经被通告给当前 BGP 网络，有了这个特性，除了 K8S 本身可以跨 AS 组集群外，整个网络中其它机器也可以和 Pod 进行直接通信。
 
 ## 结束语
 
