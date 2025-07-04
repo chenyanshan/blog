@@ -1,7 +1,7 @@
 ---
 layout: page
 title: "Cilium: 基于 BGP 和 L2 的 LoadBalancer IP 地址管理与宣告"
-date: 2025-06-22 10:14:07
+date: 2025-07-04 10:14:07
 categories: Cilium
 tags:
   - CNI
