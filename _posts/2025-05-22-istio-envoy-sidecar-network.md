@@ -2,7 +2,7 @@
 layout: page
 title: "Istio Sidecar：流量劫持原理与 Envoy 工作机制"
 date: 2025-05-22 16:30:07
-categories: 服务网格
+categories: ServiceMesh
 tags:
   - 云原生
   - 服务网格
