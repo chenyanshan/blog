@@ -2,7 +2,7 @@
 layout: page
 title:  "Envoy 核心架构浅述"
 date:  2025-04-30 22:14:07
-categories: 云原生
+categories: ServiceMesh
 tags:
   - 服务网格
   - Envoy
