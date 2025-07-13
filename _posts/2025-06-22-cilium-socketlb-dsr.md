@@ -103,7 +103,7 @@ Cilium 利用 eBPF 技术优化 Pod 间流量路径，旨在绕过内核中效�
 
 ![image-20250622153124198](https://hihihiai.com/images/cilium-socketlb-dsr/image-20250622153124198.png)
 
-​	其实上面的图也不是对的，严格来说，此方案只是把 Service 的实现往数据路径的更前端挪动了些，从宿主机网络协议栈，挪动到了 Pod 的 veth-paic 宿主机侧网卡的 TC Hook Ingress 处。不过这样也能实现跳过内核协议栈的路径优化。
+​	严格来说，此方案只是把 Service 的实现往数据路径的更前端挪动了些，从宿主机网络协议栈，挪动到了 Pod 的 veth-paic 宿主机侧网卡的 TC Hook Ingress 处。不过这样也能实现跳过内核协议栈的路径优化。
 
 # 二、Cilium kubeProxyReplacement
 
