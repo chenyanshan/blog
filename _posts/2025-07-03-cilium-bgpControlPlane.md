@@ -15,6 +15,16 @@ tags:
 
 ## 一、实验架构
 
+各组件版本：
+
+- Host System: Ubuntu 22.04
+- Kernel version: 5.15.0-122-generic
+- Kind: v0.29.0
+- ContainerLab: 0.68.0
+- Kubernetes: v1.33.1
+- Cilium: v1.17.4
+- Vyos: v1.5
+
 ![image-20250703210814526](https://hihihiai.com/images/cilium-bgpControlPlane/image-20250703210814526.png)
 
 架构情况如下：
