@@ -1,6 +1,6 @@
 ---
 layout: page
-title: "Cilium: 深入解析 Cluster Mesh 的跨集群通信机制"
+title: "Cilium: 深入解析 Cluster Mesh 的实现原理和跨集群通信机制"
 date: 2025-07-12 10:14:07
 categories: Cilium
 tags:
