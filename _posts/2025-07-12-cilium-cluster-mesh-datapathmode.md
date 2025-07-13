@@ -53,19 +53,22 @@ clustermesh-apiserver 提供的数据包含：
 
 ![image-20250713200507753](https://hihihiai.com/images/cilium-cluster-mesh-datapathmode/image-20250713200507753.png)
 
-数据平面由运行在每个节点的 Cilium Agent 以及挂载在 Linux 内核的 eBPF 程序组成，
+Cilium 的数据平面是执行网络转发、安全策略和负载均衡的核心引擎。它由两部分构成：
 
-数据平面，数据平面从控制平面获取各个集群 Pod 信息，并在转发和收到的时候，分别进行网络策略的校验。
+- **Cilium Agent**：在每个节点上运行的守护进程。
+- **eBPF 程序**：由 Agent 动态加载到 Linux 内核中，用于高速处理网络数据包。
 
-在集群内部时，Pod 与 Pod 间通信，还是会通过集群内配置策略，但是不同集群间通信，可以根据情况，采用不同的策略，但是集群网络模式和 Cluster Mesh 模式并不是可以随便组合的，后面会说明有哪些组合形式。
+数据平面的核心职责是：从控制平面（`clustermesh-apiserver`）同步所有集群的 Pod、服务和策略信息，并在数据包的收发路径上，高效地执行以下关键功能。
 
 数据平面的作用：
 
 - 高效负载均衡：让 CIlium 能在 Pod veth-pair tc ingress hook（from_container） 处或者 Socket 层（kubeProxyReplacement），就能把目标地址为 Global Service 的报文的目标 IP 改为其他集群的 Pod IP ，实现高效且便捷的跨集群负载均衡。
-- 跨集群网络策略：虽然是多个集群组成的 Mesh，但是通过 CIlium ，整个 Cluster Mesh 都可以使用网络策略，和非 Mesh 一样，在 Overlay 架构下，每个报文在离开 Pod 时，其源 Cilium Identity 会被 eBPF 程序编码至报文中。在 Underlay 模式下，Pod 报文是直接发给目标 Pod 的，报文到达目标宿主机，在 redirect 给 Pod 前，Cilium eBPF 程序会通过之前在整个 Mesh 的集群的 clustermesh-apiserver 获取的信息，判断源 Pod 的 identity ，然后根据网络策略，放行或者 Drop 报文。
-- **透明加密：** 支持使用 IPsec 或 WireGuard 对跨集群的流量进行透明的加密和解密
+- 跨集群网络策略：Cilium 将多个独立的 Kubernetes 集群整合成一个逻辑上统一的网络策略域，允许您像在单个集群内一样管理跨集群流量。其实现方式根据网络模式有所不同：
+  - **在 Overlay 模式下**：当数据包离开源 Pod 时，eBPF 程序会将源 Pod 的安全身份（Cilium Identity）直接编码到封装的报文中。当数据包到达目标节点时，该节点的 eBPF 程序会解码出这个身份，并据此执行相应的网络策略。
+  - **在 Underlay 模式下**：Pod 间的通信直接使用底层网络路由，报文中不携带身份信息。当数据包到达目标节点后，在转发给目标 Pod 之前，该节点的 eBPF 程序会查询已同步的全局身份信息（源自 `clustermesh-apiserver`），以此识别源 Pod 的身份，并根据网络策略决定是**放行**还是**丢弃**该数据包。
+- 透明加密： 数据平面支持通过 **IPsec** 或 **WireGuard** 协议，对所有跨越集群边界的流量进行自动、透明的加密与解密，无需修改应用代码即可保障通信的机密性和完整性。
 
-结合描述就是：
+## 结合描述：
 
 - **分布式信息同步**：首先，在每个成员集群中都会部署一个名为 `clustermesh-apiserver` 的核心组件。它负责收集并存储该集群内的 Pod、Service、Node、Identity 标识以及相关的网络策略信息。
 - **构建全局视野**：随后，所有节点上的 Cilium Agent 会通过安全的 TLS 加密连接，从**所有集群**的 `clustermesh-apiserver` 中拉取信息，并将信息存储在当前节点的 eBPF map 中。这样，每个 Agent 就获得了整个 Cluster Mesh 的全局网络视野。
