@@ -1,6 +1,6 @@
 ---
 layout: page
-title: "Cilium: 基于 BGP 和 L2 的 LoadBalancer IP 地址管理与宣告"
+title: "Cilium: 基于 BGP 或 ARP 的 LoadBalancer IP 地址管理与宣告"
 date: 2025-07-04 10:14:07
 categories: Cilium
 tags:
