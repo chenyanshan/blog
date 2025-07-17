@@ -14,7 +14,7 @@ tags:
 
 # 前置信息
 
-现在的 Cilium Cluster Mesh 功能还不支持混合模式，官方说会在 Cilium 1.19 (~Q1 2026) 支持混合模式。
+现在的 Cilium Cluster Mesh 还不支持混合模式（v1.17），官方说会在 Cilium 1.19 (~Q1 2026) 支持混合模式。
 
 **Issue**：[How to Configure Native Routing within a Cluster and Encapsulation for Cross-Cluster Communication in a Cilium Cluster Mesh?](https://github.com/cilium/cilium/issues/40541)
 
