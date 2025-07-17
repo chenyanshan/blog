@@ -12,6 +12,14 @@ tags:
 
 在业务规模尚小的时候，一个 Kubernetes 集群往往能撑起所有服务。但随着业务的扩张、多区域部署或故障域隔离的需求出现，多集群架构便成了必然选择。然而，集群一旦多了，新的问题就浮出水面：如何让分散在不同 Kubernetes 集群中的服务像在同一个局域网里一样方便、高效地通信？传统的 Ingress 暴露或者 VPN 方案，要么管理复杂，要么性能堪忧。Cilium Cluster Mesh 的出现，正是为了解决这个棘手的跨集群通信问题。本文将深入探讨 Cilium 如何利用 eBPF 技术，打通多个集群之间的网络脉络。
 
+# 前置信息
+
+现在的 Cilium Cluster Mesh 功能还不支持混合模式，官方说会在 Cilium 1.19 (~Q1 2026) 支持混合模式。
+
+**Issue**：[How to Configure Native Routing within a Cluster and Encapsulation for Cross-Cluster Communication in a Cilium Cluster Mesh?](https://github.com/cilium/cilium/issues/40541)
+
+![hybrid-routing-mode-issue](https://hihihiai.com/images/cilium-cluster-mesh-datapathmode/hybrid-routing-mode-issue.png)
+
 # 一、Cilium Cluster Mesh 是什么
 
 ![image-20250713200431541](https://hihihiai.com/images/cilium-cluster-mesh-datapathmode/image-20250713200431541.png)
