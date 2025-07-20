@@ -6,7 +6,7 @@ categories: ServiceMesh
 tags:
   - 服务网格
   - Envoy
-  - Istio
+  - istio
   - 云原生
 ---
 

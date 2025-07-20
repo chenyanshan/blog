@@ -5,7 +5,7 @@ date:  2025-05-11 10:14:07
 categories: ServiceMesh
 tags:
   - 服务网格
-  - Istio
+  - istio
   - 云原生
   - Kubernetes
 ---
