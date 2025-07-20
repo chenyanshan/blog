@@ -2,8 +2,8 @@
 layout: page
 title:  "MySQL Replication－实现"
 date:   2016-6-4 21:52:07
-categories: DBMS
-tags: DBMS
+categories: database
+tags: database
 ---
 
 MySQL Replication的实现
@@ -70,7 +70,7 @@ Slave是不能够执行写操作的，一旦写了数据，Master肯定是不能
 半同步复制是Google回馈给MySQL的插件，能够实现主从架构中。手动指定哪些Slave是同步复制，哪些是异步复制，这样就可以实现和Master在一个机房的Slave使用同步复制Master的数据。这样不会太影响时间，并且，当Master宕机后，同步复制的这台Slave可以直接上来顶替Master的位置，只需要将IP改一下，并给予写权限(以后开篇详细讲)。
 
 在主从复制已经配置完成的情况下，配置半同步
- 
+
 - Maste上面安装插件并启用插件
 
 ![](https://hihihiai.com/img/linux/server/MySQL/bantongbu/master_1.jpg?raw=true)
@@ -111,7 +111,7 @@ Slave是不能够执行写操作的，一旦写了数据，Master肯定是不能
 	
 	Master里面设置黑白名单会有问题，不建议使用，原因自己百度。
 	Slave里面正则匹配的方式最为精确
- 
+
 - 在Slave里面设置黑名单并重启数据库使其生效
 
 ![](https://hihihiai.com/img/linux/server/MySQL/bantongbu/2_slave_hei.jpg?raw=true)
@@ -147,7 +147,7 @@ Slave是不能够执行写操作的，一旦写了数据，Master肯定是不能
 
 /etc/my.cnf配置
 
-	
+
 	server-id必须不同，双主模型下，二进制数据都一样，怎么判断哪个需要重放？
 	这个时候就需要server-id来确定哪些是自己操作过的，哪些只在对方服务器上面进行过操作
 	

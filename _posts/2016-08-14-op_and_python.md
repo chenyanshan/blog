@@ -3,7 +3,7 @@ layout: page
 title:  "运维应该如何对待Python"
 date:   2016-8-13 13:05:07
 categories: Python
-tags: Python
+tags: archive
 ---
 
 

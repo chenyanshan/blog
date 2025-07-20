@@ -2,8 +2,8 @@
 layout: page
 title:  "MySQL Replication－理论基础"
 date:   2016-5-31 21:52:07
-categories: DBMS
-tags: DBMS
+categories: database
+tags: database
 ---
 前言：很多公司在最开始的时候，网络架构模型一般都是一个LAMP就够用了，之后业务规模越来越大，就会遇到扩展这个问题。
 

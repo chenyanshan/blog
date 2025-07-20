@@ -3,7 +3,7 @@ layout: page
 title:  MySQL 备份还原系列之 XtraBackup
 date:   2018-3-17 8:05:07
 categories: Database
-tags: Database
+tags: database
 ---
 
 XtraBackup 是由 Percona 开发的 MySQL 备份软件，官方地址为 [Persona XtraBackup][1]，它支持 MySQL、MariaDB 和 Percona Server for MySQL。也有很多大公司为其做背书，Facebook 早期就是使用它进行增量备份的。根据官方介绍，XtraBackup 是唯一开源的能对使用 InnoDB 和 XtraDB 存储引擎的数据库进行热备的软件。显然，mysqldump 也是开源的。
@@ -187,7 +187,7 @@ XtraBackup 备份的文件除了备份过来的文件之外，还有很多记录
 	[root@chenyanshan ~]# innobackupex --user=xb_user --password=hihihiai.com /backups/
 	.....
 	180317 03:27:14 completed OK!
- 
+
 
 ### 2.2.2 增量和差异备份
 
@@ -204,7 +204,7 @@ XtraBackup 备份的文件除了备份过来的文件之外，还有很多记录
 	[root@chenyanshan ~]# innobackupex --user=xb_user --password=hihihiai.com --incremental /backups/ --incremental-basedir=/backups/2018-03-17_03-27-12/
 	.....
 	''180317 03:29:53 completed OK!
- 
+
 
 - `—incremental $BACKUP_DIR`: 这个参数的意义是告诉 XtrBackup，此次备份是增量备份，是以`--incremental-basedir `指定的目录为基础。`$BACKUP_DIR`是此次备份的备份目录
 - `—incremental-basedir=$BACKUP_DIR`: 这个参数是用于指定增量备份的基础目录。`$BACKUP_DIR`是基础备份目录，此次备份会以里面的 LSN 为基础再进行备份

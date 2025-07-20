@@ -3,7 +3,7 @@ layout: page
 title:  "图形界面配置HA"
 date:   2016-6-21 23:05:07
 categories: HA
-tags: HA
+tags: archive
 ---
 这个是前面一篇理论的深入。使用heartbeat实现高可用。
 前面准备工作我就不讲过程了

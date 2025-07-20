@@ -3,7 +3,7 @@ layout: page
 title:  "简单实现自动防御DDOS"
 date:   2016-4-19 01:52:07
 categories: linux
-tags: linux
+tags: archive
 ---
   之前在群里聊天的时候听到一群友在抱怨前任是不是得罪人了，现在公司网站天天受到DDOS攻击，而且对方肉鸡很多，都好像正常访问者一样，根本就无从判断。助人为乐是我这样的现代帅小伙经常做的事情(我自己都想吐了)，于是我便到他那里问来了日志(说的简单，其实发了几个邮件，等了几天才拿到日志的，而且只是一个小日志)，当然，在这之前我向其承诺了发在公共场合的图片及文字不会涉及到日志的具体内容。
   日志拿到经过半个小时监测就基本有了思路，可能是那个群友对http协议不和web服务日志不怎么了解的原因，他认为那个很复杂的问题其实比较简单。
@@ -99,4 +99,4 @@ tags: linux
 [image-4]:	https://hihihiai.com/img/linux/sh/ddos_iptables/4code2.png?raw=true
 [image-5]:	https://hihihiai.com/img/linux/sh/ddos_iptables/5shell_2.png?raw=true
 [image-6]:	https://hihihiai.com/img/linux/sh/ddos_iptables/7.jpg?raw=true
-[image-7]:	https://hihihiai.com/img/linux/sh/ddos_iptables/8.jpg?raw=true	
+[image-7]:	https://hihihiai.com/img/linux/sh/ddos_iptables/8.jpg?raw=true

@@ -3,7 +3,7 @@ layout: page
 title:  MySQL 备份还原系列之备份分类
 date: 2018-03-13 14:05:07
 categories: Database
-tags: Database
+tags: database
 ---
 
 对于大部分公司来说，数据库的安全是重中之重，数据库的备份还原也显得尤为重要。但是因为 MySQL 备份还原涉及到的东西太多，很多运维同学并没有对备份还原并没有太多的理解，很多可能只会使用最基本的 mysqldump 命令配合文档进行备份还原操作。我在这里就将整个 MySQL 备份还原讲一下。

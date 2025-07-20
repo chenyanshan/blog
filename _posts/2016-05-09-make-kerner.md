@@ -3,7 +3,7 @@ layout: page
 title:  "记一次失败的内核编译"
 date:   2016-4-8 23:52:07
 categories: kernel
-tags: kernel
+tags: archive
 ---
 最开始的想法是编译一个单纯的kernel，将etx4、pci、网卡、键盘等基本驱动编译进kernel，打上iptables_layer7补丁，然后再移植ifconfig，gcc，make，ls，cd，mkdir，touch等程序，将ssh弄好，最后编译安装iptables，这样我就可以在寝室实现练习iptables的命令了(当然更多的是满足心中的恶趣味)。当然，可能还要借助自建DHCP服务器，或者kali-linux等工具让室友网关(当然这台机器会需要三张网卡，我的和室友的分开用)指向我这台最小化安装的能实现firewall、acl、nat为一体的的最小化系统。我觉得这样实验会加强我对iptables和kernel编译的理解和记忆。可惜半途夭折，也不能说半途夭折，以后找个时间继续做就是了~实在不行，我就不编译kernel，只打上iptables_layer7补丁就开始练习iptables命令。。
 

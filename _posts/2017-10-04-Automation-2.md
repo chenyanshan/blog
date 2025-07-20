@@ -3,7 +3,7 @@ layout: page
 title:  自动化运维之 Ansible 管理多套环境
 date:   2017-10-04 23:45:01
 categories: Automation
-tags: Automation
+tags: ansible
 ---
 
 前面一篇中已经有说明了。我现在公司需要管理的环境有三套，分别为生产环境、测试环境和审核环境。所有需要更新到生产环境的代码都必须先经由测试环境测试，测试通过了，再才能更新到生产环境。测试环境并没有外部人员进行连接，审核环境是用于 App Store 审核使用，这里就不多说了。
@@ -190,7 +190,7 @@ Role 是 Ansible 里面一个非常重要的内容，它于 ansible 1.2 被引�
 	        /usr/bin/scp  /apps/tempdata/update/backstage/backstage.war chenys@remote_host:/apps/playbooks/roles/tomcat/files/update_back
 	        /usr/bin/ssh chenys@remote_host "/usr/bin/ansible-playbook -i /etc/ansible/environments/tst/ /apps/playbooks/update_backstage.yml"
 	fi
-	
+
 
 这里我已经将钩子脚本删减到一个内容，其实就是在钩子脚本触发的时候，检测指定的目录有无更新，如果有，就执行同步文件并更新到测试环境的操作。其中的` -i /etc/ansible/environments/tst/ ` 就是指定测试环境。这样的命令太长，太繁琐，可以使用别名。或者自己写个脚本。接受几个参数的方式执行。
 

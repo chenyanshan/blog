@@ -3,7 +3,7 @@ layout: page
 title: MySQL 备份还原系列之 mysqldump
 date:   2018-3-14 18:05:07
 categories: Database
-tags: Database
+tags: database
 ---
 
 mysqldump 是现在在小型企业使用最为广泛的 MySQL 备份工具，因为很多初级运维工程师基本上只能接触到它，所以我们就先来讲一下它。mysqldump 的原理很简单，就是 SELECT 把数据提取出来，但是结合不同存储引擎的其他特性，mysqldump 既可以实现温备，又可以实现热备。

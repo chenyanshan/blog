@@ -3,7 +3,7 @@ layout: page
 title: "一开发环境的恢复"
 date:   2016-4-26 01:52:07
 categories: linux
-tags: linux
+tags: archive
 ---
 
 又是一群友，在群里说自己电脑在停电之后重启，虚拟机就起不来了。环境和数据都在上面
@@ -93,7 +93,7 @@ LVM,那就检测一下咯，
 ![](https://hihihiai.com/img/linux/server/mysql_server_fail/image7.png?raw=true)
 
 然后在里面找到数据库，PHP代码啥的。当然这些个都是别人的，不好展示
- 
+
 摸索过程在下列blog中获得了帮助：
 
 [http://www.cnblogs.com/xiaoyu1005/archive/2013/05/20/3088586.html](#)

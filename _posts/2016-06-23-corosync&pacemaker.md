@@ -3,7 +3,7 @@ layout: page
 title:  "corosync&pacemaker组合二"
 date:   2016-6-23 22:05:07
 categories: HA
-tags: HA
+tags: archive
 ---
 看不懂的童鞋可以看我的HA理论篇和图形界面配置篇，这样可以对pacemaker和corosync组合使用有个比较深的认知。不然我说的是什么你基本是看不懂的。为了让大家更了解细节，这里就不建立Gorup而直接创建资源，然后使用`位置约束、排列约束、顺序约束`进行管理，
 

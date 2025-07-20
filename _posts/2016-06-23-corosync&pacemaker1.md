@@ -3,7 +3,7 @@ layout: page
 title:  "corosync&pacemaker组合一"
 date:   2016-6-23 17:05:07
 categories: HA
-tags: HA
+tags: archive
 ---
 使用corosync v1和pacemaker结合使用，也就是用corosync替换掉heartbeat。之前HA高可用模型那篇中就说过，Messaging提供API供CRM调用，也就是说CRM只要能调用Messaging的API。那它们之间就能结合使用，corosync和pacemaker就是这样一种关系
 
@@ -129,7 +129,7 @@ tags: HA
 	Starting Corosync Cluster Engine (corosync):               [  OK  ]
 	[root@web1 ~]# service pacemaker start
 	Starting Pacemaker Cluster Manager                         [  OK  ]
- 
+
 8、查看集群状态
 
 	[root@web1 ~]# crm status
@@ -140,8 +140,9 @@ tags: HA
 	Version: 1.1.11-97629de
 	2 Nodes configured, 2 expected votes
 	0 Resources configured
-	
-	
+
+
+​	
 	Online: [ web1.itcys.top web2.itcys.top ]
 	
 	Full list of resources:
