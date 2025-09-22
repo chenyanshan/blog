@@ -30,7 +30,7 @@ tags:
 
 ⚠️ **文中有些内容不是很符合中国国情，请自行斟酌吸纳，主要理解复利。**
 
-##**回测定投美股年化**：
+## **回测定投美股年化**：
 
 - 定投方案：每月定投 5000 。
 - 定投时间：
@@ -38,7 +38,7 @@ tags:
   - 5年开始到今天
   - 2017 年 6 月到今天（回测的基金创建时间）
 
-![image-20250922230408317](/Users/chenyanshan/Library/Application Support/	/image-20250922230408317.png)
+![image-20250922230408317](https://hihihiai.com/images/2025-09-22-saving-rate-vs-investment-return/image-20250922230408317.png)
 
 回测数据：
 
