@@ -207,11 +207,11 @@ Vanguard（先锋集团）等机构进行过更全面的数据回测，分析了
 
 ![image.png](https://hihihiai.com/images/2025-09-22-saving-rate-vs-investment-return/image17.png)
 
-试想一下，如果这个家庭能够获得7%的年回报率，同时还能将一半的收入存起来，那么他们只需15年就能实现财务自由。在这种情况下，15年后的投资回报将占到他们总净资产的44%：
+试想一下，如果这个家庭能够获得7%的年回报率，同时还能将一半的收入存起来，那么他们只需15年就能实现财务独立。在这种情况下，15年后的投资回报将占到他们总净资产的44%：
 
 ![image.png](https://hihihiai.com/images/2025-09-22-saving-rate-vs-investment-return/image18.png)
 
-如果这个家庭的年回报率达到10%，那么他们只需13年就能实现财务自由。这样一来，13年后的投资回报将占到他们总净资产的52%：
+如果这个家庭的年回报率达到10%，那么他们只需13年就能实现财务独立。这样一来，13年后的投资回报将占到他们总净资产的52%：
 
 ![image.png](https://hihihiai.com/images/2025-09-22-saving-rate-vs-investment-return/image19.png)
 
