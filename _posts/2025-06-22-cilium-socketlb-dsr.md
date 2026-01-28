@@ -150,7 +150,7 @@ Cilium 在安装的时候可以指定 `loadBalancer.mode`，一共有4种，`dsr
 
    - 本机 Pod 返回的报文，会被 `to_netdev`处理，并由其执行反向 NAT，把源 IP 更换成 Service IP ，然后由 eth0 发出。
 
-   - 报文还是会被  `from_netdev` 截获，并由其执行反向 NAT ，把源 IP 更换成 Service IP ，目标 IP 更换成客户端 IP ，然后直接 redirect 到 eth0 发出。
+   - 其他宿主机 Pod 返回的报文，会被  `from_netdev` 截获，并由其执行反向 NAT ，把源 IP 更换成 Service IP ，目标 IP 更换成客户端 IP ，然后直接 redirect 到 eth0 发出。
 
 6. 客户端收到报文。
 
