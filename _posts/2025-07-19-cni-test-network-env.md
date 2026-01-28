@@ -171,7 +171,7 @@ sudo clab deploy -t l2-network-clab.yaml
 
 有两个关键设置需要解释一下:
 
--  **topology.<ClabContainerName>.network-mode: container: <RunContainerName>**: 这个配置的作用，是 <ClabContainerName> 容器，将使用 <RunContainerName> 的网络名称空间。这样配置就能实现 ContainerLab 接管 Kind 节点的网络。
+- **topology.ClabContainerName.network-mode: container:RunContainerName**: 这个配置的作用，是 ClabContainerName 容器，将使用 RunContainerName 的网络名称空间。这样配置就能实现 ContainerLab 接管 Kind 节点的网络。
 - **topology.router.exec: "sysctl -w net.ipv4.ip_forward=1; iptables -t nat -A POSTROUTING -s 10.0.0.0/8 -j MASQUERADE"**: 这个是做 SNAT使用，因为 Kind 创建的 K8S 节点默认路由已经被修改，所以需要其他地方能让其访问到外部网络，这样才能拉镜像和连接外网。
 
 查看容器情况：
